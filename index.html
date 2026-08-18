@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Dashboard RH — SC & SP 2026</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0D1660;--blue:#1B2784;--blue2:#2E3DA0;--accent:#E95C2C;--accent2:#F5A623;
+  --green:#2E7D32;--purple:#7B1FA2;--bg:#E8EBF7;--bg2:#F3F4FB;--white:#fff;
+  --text:#1B2784;--muted:#546E7A;--border:#C5CAE9;
+  --shadow:0 2px 12px rgba(13,22,96,.10);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:13px}
+
+/* HEADER */
+.hdr{background:var(--navy);height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.3)}
+.hdr-title{color:#fff;font-size:17px;font-weight:700;letter-spacing:.3px}
+.hdr-sub{color:#A0AEFF;font-size:12px;font-weight:400}
+.switcher{display:flex;gap:3px;background:rgba(255,255,255,.1);border-radius:9px;padding:3px}
+.sw-btn{padding:7px 26px;border:none;border-radius:7px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;color:rgba(255,255,255,.55);background:transparent;transition:all .22s}
+.sw-btn.active{background:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.sw-btn:hover:not(.active){color:#fff;background:rgba(255,255,255,.1)}
+
+/* LAYOUT */
+.main{padding:20px 28px;max-width:1440px;margin:0 auto}
+.period{display:inline-flex;align-items:center;gap:7px;background:var(--blue);color:#fff;padding:5px 14px;border-radius:16px;font-size:12px;font-weight:500;margin-bottom:16px}
+.period::before{content:"●";color:#A0AEFF;font-size:7px}
+
+/* KPI STRIP */
+.kpi-strip{display:grid;grid-template-columns:repeat(9,1fr);gap:8px;margin-bottom:16px}
+.kpi{background:#fff;border-radius:9px;padding:12px 8px 9px;text-align:center;box-shadow:var(--shadow);border-top:3px solid var(--blue)}
+.kpi.red{border-top-color:var(--accent)}.kpi.grn{border-top-color:var(--green)}
+.kpi-lbl{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:5px}
+.kpi-val{font-size:26px;font-weight:700;color:var(--blue);line-height:1}
+.kpi-val.red{color:var(--accent)}.kpi-val.grn{color:var(--green)}
+
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+.g12{display:grid;grid-template-columns:1fr 2fr;gap:14px;margin-bottom:14px}
+.g13{display:grid;grid-template-columns:1fr 3fr;gap:14px;margin-bottom:14px}
+
+/* CARD */
+.card{background:#fff;border-radius:11px;padding:18px;box-shadow:var(--shadow)}
+.card-title{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--blue);margin-bottom:14px;padding-bottom:9px;border-bottom:2px solid var(--bg)}
+.sec-hdr{font-size:11px;font-weight:700;color:var(--navy);background:var(--bg2);padding:6px 10px;border-radius:6px;margin:10px 0 8px;border-left:3px solid var(--blue)}
+
+/* TABLES */
+.tbl{width:100%;border-collapse:collapse;font-size:11px}
+.tbl th{background:var(--navy);color:#fff;padding:7px 9px;font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;text-align:left}
+.tbl th:not(:first-child){text-align:right}
+.tbl td{padding:7px 9px;border-bottom:1px solid var(--bg)}
+.tbl td:not(:first-child){text-align:right;font-weight:500}
+.tbl tr:nth-child(even) td{background:var(--bg2)}
+.tbl tr.tot td{background:var(--navy);color:#fff;font-weight:700;font-size:11px}
+.tbl tr.mot-row td{background:#EEF0FA;font-weight:600}
+.dept-nm{font-weight:600;color:var(--blue);font-size:10.5px}
+.mot-tag{display:inline-block;background:var(--blue2);color:#fff;font-size:8px;padding:1px 5px;border-radius:8px;margin-left:4px;font-weight:600}
+
+/* BADGES */
+.badge{display:inline-block;padding:2px 9px;border-radius:10px;font-size:9.5px;font-weight:700;color:#fff}
+.b-sc{background:var(--blue)}.b-sp{background:var(--accent)}
+.b-col{background:var(--blue)}.b-exp{background:var(--purple)}
+
+/* DONUT CHART */
+.donut-wrap{display:flex;align-items:center;gap:16px}
+.donut{position:relative;width:90px;height:90px;flex-shrink:0}
+.donut svg{transform:rotate(-90deg)}
+.donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.donut-pct{font-size:15px;font-weight:700;color:var(--blue)}
+.donut-sub{font-size:8px;color:var(--muted)}
+.donut-legend{display:flex;flex-direction:column;gap:6px}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:11px}
+.legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+
+/* BAR CHART */
+.bar-chart{display:flex;flex-direction:column;gap:6px}
+.bar-row{display:flex;align-items:center;gap:8px}
+.bar-lbl{font-size:10px;font-weight:500;width:110px;text-align:right;color:var(--muted);flex-shrink:0}
+.bar-lbl.wide{width:140px}
+.bar-track{flex:1;height:20px;background:var(--bg2);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width .5s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;justify-content:flex-end;padding-right:5px;min-width:22px}
+.bar-fill span{font-size:9.5px;font-weight:700;color:#fff}
+.bar-sc{background:var(--blue)}.bar-sp{background:var(--accent)}.bar-n{background:var(--blue2)}
+
+/* LINE CHART (SVG) */
+.chart-wrap{position:relative}
+.chart-svg{width:100%;overflow:visible}
+
+/* MINI STATS */
+.mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.mini{background:var(--bg2);border-radius:7px;padding:11px 10px;text-align:center;border-left:3px solid var(--blue)}
+.mini.acc{border-left-color:var(--accent)}.mini.grn{border-left-color:var(--green)}
+.mini-val{font-size:18px;font-weight:700;color:var(--blue)}.mini-val.acc{color:var(--accent)}.mini-val.grn{color:var(--green)}
+.mini-lbl{font-size:9px;color:var(--muted);margin-top:2px;font-weight:500}
+.mini3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+
+/* TURNOVER */
+.tv-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.tv-card{background:var(--bg2);border-radius:8px;padding:12px 8px;text-align:center}
+.tv-val{font-size:24px;font-weight:700}
+.tv-val.ok{color:var(--green)}.tv-val.warn{color:var(--accent)}.tv-val.tgt{color:var(--accent2)}
+.tv-lbl{font-size:10px;color:var(--muted);margin-top:3px}
+.tv-st{font-size:9px;font-weight:600;margin-top:5px}
+.tv-st.ok{color:var(--green)}.tv-st.warn{color:var(--accent)}
+
+/* ABSENT */
+.ab-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.ab-card{border-radius:8px;padding:12px;text-align:center;border:2px solid var(--border)}
+.ab-card.sc{border-color:var(--blue)}.ab-card.sp{border-color:var(--accent)}
+.ab-un{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
+.ab-un.sc{color:var(--blue)}.ab-un.sp{color:var(--accent)}
+.ab-val{font-size:28px;font-weight:700}.ab-val.sc{color:var(--blue)}.ab-val.sp{color:var(--accent)}
+.ab-sub{font-size:10px;color:var(--muted)}
+
+/* PROMO */
+.promo-big{text-align:center;padding:8px 0}
+.promo-num{font-size:48px;font-weight:700;color:var(--green);line-height:1}
+.promo-name{font-size:12px;color:var(--muted);margin-top:7px}
+
+/* EXP LIST */
+.exp-list{list-style:none}
+.exp-item{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-bottom:1px solid var(--bg);font-size:11px}
+.exp-item:last-child{border-bottom:none}
+.exp-item:nth-child(even){background:var(--bg2)}
+
+/* SUMMARY */
+.sum-item{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--bg);font-size:11px}
+.sum-item:last-child{border-bottom:none}
+.sum-k{color:var(--muted);font-weight:500}.sum-v{font-weight:700;color:var(--blue)}
+
+/* TENURE */
+.ten-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.ten-lbl{width:75px;font-size:10.5px;font-weight:600;text-align:right;flex-shrink:0}
+.ten-bar{flex:1;height:18px;background:var(--bg2);border-radius:3px;overflow:hidden}
+.ten-fill{height:100%;background:var(--blue);border-radius:3px;transition:width .5s ease;display:flex;align-items:center;justify-content:flex-end;padding-right:5px}
+.ten-fill span{font-size:9px;font-weight:700;color:#fff}
+.ten-pct{width:38px;font-size:10px;color:var(--muted);text-align:right}
+
+/* DRILL-DOWN MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(13,22,96,.5);z-index:300;display:none;align-items:flex-start;justify-content:center;padding:60px 20px;overflow-y:auto}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:14px;padding:24px;width:100%;max-width:720px;position:relative;box-shadow:0 8px 40px rgba(13,22,96,.3);margin:auto}
+.modal-close{position:absolute;top:14px;right:16px;background:var(--bg2);border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted)}
+.modal-close:hover{background:var(--border)}
+.modal-title{font-size:14px;font-weight:700;color:var(--blue);margin-bottom:4px}
+.modal-sub{font-size:11px;color:var(--muted);margin-bottom:16px}
+.drill-btn{background:none;border:none;color:var(--blue);font-size:11px;font-weight:600;cursor:pointer;text-decoration:underline;padding:0}
+.drill-btn:hover{color:var(--accent)}
+
+/* SECTION BLOCKS */
+.section-block{margin-bottom:6px}
+
+/* FADE IN */
+.fade{animation:fi .3s ease}
+@keyframes fi{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+
+/* NAV TABS */
+.tab-row{display:flex;gap:6px;margin-bottom:12px}
+.tab{padding:5px 16px;border-radius:16px;border:2px solid var(--border);background:#fff;font-size:11px;font-weight:600;cursor:pointer;color:var(--muted);transition:all .18s}
+.tab.active-sc{background:var(--blue);border-color:var(--blue);color:#fff}
+.tab.active-sp{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* SECTION SEPARATOR */
+.sep{height:1px;background:var(--border);margin:18px 0;opacity:.5}
+
+/* ── FULLSCREEN BTN ── */
+.fs-btn{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);
+  color:#fff;padding:6px 16px;border-radius:8px;font-family:inherit;
+  font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;
+  white-space:nowrap;
+}
+.fs-btn:hover{background:rgba(255,255,255,0.25)}
+.fs-btn svg{width:14px;height:14px;flex-shrink:0}
+/* Fullscreen scroll fix */
+:fullscreen .main, :-webkit-full-screen .main{padding-bottom:40px}
+:fullscreen body, :-webkit-full-screen body{overflow-y:auto}
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div>
+    <div class="hdr-title">Dashboard RH — SC & SP</div>
+    <div class="hdr-sub">Recursos Humanos · Abr–Jul/2026</div>
+  </div>
+  <div class="switcher">
+    <button class="sw-btn active" onclick="setMonth('abr')">Abril/2026</button>
+    <button class="sw-btn" onclick="setMonth('mai')">Maio/2026</button>
+    <button class="sw-btn" onclick="setMonth('jun')">Junho/2026</button>
+    <button class="sw-btn" onclick="setMonth('jul')">Julho/2026</button>
+  </div>
+  <button class="fs-btn" onclick="toggleFS()" id="fs-btn" title="Apresentar em tela cheia (F11)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+      <path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M3 16v3a2 2 0 0 0 2 2h3"/>
+    </svg>
+    Apresentar
+  </button>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="period" id="period-lbl">01/04/2026 — 30/04/2026</div>
+
+  <!-- KPI STRIP -->
+  <div class="kpi-strip">
+    <div class="kpi"><div class="kpi-lbl">Colaboradores</div><div class="kpi-val" id="k-tot">126</div></div>
+    <div class="kpi"><div class="kpi-lbl">SC</div><div class="kpi-val" id="k-sc">85</div></div>
+    <div class="kpi red"><div class="kpi-lbl">SP</div><div class="kpi-val red" id="k-sp">41</div></div>
+    <div class="kpi grn"><div class="kpi-lbl">Adm. SC</div><div class="kpi-val grn" id="k-asc">4</div></div>
+    <div class="kpi grn"><div class="kpi-lbl">Adm. SP</div><div class="kpi-val grn" id="k-asp">0</div></div>
+    <div class="kpi red"><div class="kpi-lbl">Dem. SC</div><div class="kpi-val red" id="k-dsc">3</div></div>
+    <div class="kpi red"><div class="kpi-lbl">Dem. SP</div><div class="kpi-val red" id="k-dsp">1</div></div>
+    <div class="kpi grn"><div class="kpi-lbl">Promoções</div><div class="kpi-val" id="k-prom">0</div></div>
+    <div class="kpi"><div class="kpi-lbl">Experiência</div><div class="kpi-val" id="k-exp">5</div></div>
+  </div>
+
+  <!-- ROW 1: GÊNERO + NATURALIDADE + TURNOVER -->
+  <div class="g3">
+    <!-- GÊNERO -->
+    <div class="card">
+      <div class="card-title">Divisão por Gênero</div>
+      <div class="sec-hdr">SC</div>
+      <div class="donut-wrap" id="donut-sc"></div>
+      <div class="sec-hdr" style="margin-top:12px">SP</div>
+      <div class="donut-wrap" id="donut-sp"></div>
+    </div>
+
+    <!-- NATURALIDADE -->
+    <div class="card">
+      <div class="card-title">Naturalidade</div>
+      <div class="sec-hdr">SC</div>
+      <div class="bar-chart" id="nat-sc-chart"></div>
+      <div class="sec-hdr" style="margin-top:12px">SP</div>
+      <div class="bar-chart" id="nat-sp-chart"></div>
+    </div>
+
+    <!-- TURNOVER + DESLIGAMENTOS -->
+    <div class="card">
+      <div class="card-title">Turnover</div>
+      <div class="tv-grid">
+        <div class="tv-card">
+          <div class="tv-val" id="tv-sc-val">4,60%</div>
+          <div class="tv-lbl">SC</div>
+          <div class="tv-st" id="tv-sc-st">▲ Acima da meta</div>
+        </div>
+        <div class="tv-card">
+          <div class="tv-val ok" id="tv-sp-val">1,19%</div>
+          <div class="tv-lbl">SP</div>
+          <div class="tv-st ok">✓ Dentro da meta</div>
+        </div>
+        <div class="tv-card">
+          <div class="tv-val tgt">4,00%</div>
+          <div class="tv-lbl">Meta</div>
+          <div class="tv-st" style="color:var(--accent2)">Referência</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 2: DESLIGAMENTOS + EXPERIÊNCIA + PROMOÇÕES + AFASTAMENTOS -->
+  <div class="g4">
+    <div class="card" style="grid-column:span 2">
+      <div class="card-title">Desligamentos <span id="desl-count" style="font-weight:400;color:var(--muted)"></span></div>
+      <table class="tbl"><thead><tr><th>Nome</th><th>Un.</th><th>Motivo</th><th>Tipo</th></tr></thead>
+      <tbody id="desl-tbody"></tbody></table>
+    </div>
+    <div class="card">
+      <div class="card-title">Em Experiência <span id="exp-count" style="font-weight:400;color:var(--muted)"></span></div>
+      <ul class="exp-list" id="exp-ul"></ul>
+    </div>
+    <div class="card">
+      <div class="card-title">Promoções</div>
+      <div class="promo-big"><div class="promo-num" id="prom-num">0</div><div class="promo-name" id="prom-name"></div></div>
+      <div class="sep"></div>
+      <div class="sum-item"><span class="sum-k">Acumulado 2026</span><span class="sum-v" id="prom-acum"></span></div>
+      <div class="sum-item"><span class="sum-k">Total 2025</span><span class="sum-v">40</span></div>
+      <div class="sep"></div>
+      <div class="card-title" style="margin-top:4px">Afastamentos</div>
+      <div class="ab-grid">
+        <div class="ab-card sc"><div class="ab-un sc">SC</div><div class="ab-val sc" id="ab-sc">10</div><div class="ab-sub">dias</div></div>
+        <div class="ab-card sp"><div class="ab-un sp">SP</div><div class="ab-val sp" id="ab-sp">12</div><div class="ab-sub">dias</div></div>
+      </div>
+      <div class="sum-item"><span class="sum-k">Acumulado 2026</span><span class="sum-v" id="ab-acum"></span></div>
+    </div>
+  </div>
+
+  <!-- ROW 3: SETOR x CARGO -->
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Setor x Cargo — SC</div>
+      <div class="bar-chart" id="cargo-sc-chart"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Setor x Cargo — SP</div>
+      <div class="bar-chart" id="cargo-sp-chart"></div>
+    </div>
+  </div>
+
+  <!-- ROW 4: HE SC EVOLUÇÃO + HE SP EVOLUÇÃO -->
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Horas Extras SC — Evolução Jan–Mai/2026</div>
+      <div class="mini-grid">
+        <div class="mini"><div class="mini-val" id="he-sc-val"></div><div class="mini-lbl">Valor Mês</div></div>
+        <div class="mini acc"><div class="mini-val acc" id="he-sc-acum"></div><div class="mini-lbl">Acumulado Jan–Mai</div></div>
+      </div>
+      <div id="he-sc-evolchart"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Horas Extras SP — Evolução Jan–Mai/2026</div>
+      <div class="mini-grid">
+        <div class="mini"><div class="mini-val" id="he-sp-val"></div><div class="mini-lbl">Valor Mês</div></div>
+        <div class="mini acc"><div class="mini-val acc" id="he-sp-acum"></div><div class="mini-lbl">Acumulado Jan–Mai</div></div>
+      </div>
+      <div id="he-sp-evolchart"></div>
+    </div>
+  </div>
+
+  <!-- ROW 5: HE SC DEPTS + HE SP DEPTS (clickable) -->
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Horas Extras SC — Por Departamento</div>
+      <table class="tbl" id="he-sc-dept-tbl"></table>
+    </div>
+    <div class="card">
+      <div class="card-title">Horas Extras SP — Por Departamento</div>
+      <table class="tbl" id="he-sp-dept-tbl"></table>
+    </div>
+  </div>
+
+  <!-- ROW 6: HF EVOLUÇÃO -->
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Horas Faltas SC — Evolução Jan–Mai/2026</div>
+      <div class="mini-grid">
+        <div class="mini"><div class="mini-val" id="hf-sc-val"></div><div class="mini-lbl">Total Mês</div></div>
+        <div class="mini acc"><div class="mini-val acc" id="hf-sc-acum"></div><div class="mini-lbl">Acumulado Jan–Mai</div></div>
+      </div>
+      <div id="hf-sc-evolchart"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Horas Faltas SP — Evolução Jan–Mai/2026</div>
+      <div class="mini-grid">
+        <div class="mini"><div class="mini-val" id="hf-sp-val"></div><div class="mini-lbl">Total Mês</div></div>
+        <div class="mini acc"><div class="mini-val acc" id="hf-sp-acum"></div><div class="mini-lbl">Acumulado Jan–Mai</div></div>
+      </div>
+      <div id="hf-sp-evolchart"></div>
+    </div>
+  </div>
+
+  <!-- ROW 7: HF SC DEPTS + HF SP DEPTS -->
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Horas Faltas SC — Por Departamento</div>
+      <table class="tbl" id="hf-sc-dept-tbl"></table>
+    </div>
+    <div class="card">
+      <div class="card-title">Horas Faltas SP — Por Departamento</div>
+      <table class="tbl" id="hf-sp-dept-tbl"></table>
+    </div>
+  </div>
+
+  <!-- ROW 8: TEMPO DE EMPRESA -->
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Tempo de Empresa / Ano</div>
+      <div id="tenure-chart"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Distribuição</div>
+      <table class="tbl">
+        <thead><tr><th>Faixa</th><th>Qtd</th><th>%</th></tr></thead>
+        <tbody id="tenure-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- DRILL-DOWN MODAL -->
+<div class="modal-bg" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕ Fechar</button>
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-sub" id="modal-sub"></div>
+    <table class="tbl" id="modal-table"></table>
+  </div>
+</div>
+
+<script>
+const RAW = {"abr":{"gen_sc":{"M":57,"F":25,"total":85},"gen_sp":{"M":34,"F":7,"total":41},"nat_sc":{"SUL":47,"NORDESTE":14,"SUDESTE":12,"NORTE":9,"C.OESTE":3},"nat_sp":{"SUL":1,"NORDESTE":11,"SUDESTE":29,"NORTE":0,"C.OESTE":0},"cargo_sc":[["MOTORISTA",19],["ANALISTA",18],["AUXILIAR",10],["LIDER",8],["CONFERENTE",7],["COORDENADOR",5],["EXEC.VENDAS",4],["AJD. CARGA",4],["DIRETOR",4],["CONSULTOR",1],["SERV.GERAIS",1],["C",1],["ESTAGIO",1],["ANALISTA ",1],["RECEPCIONISTA",1]],"cargo_sp":[["AJD. CARGA",14],["MOTORISTA",7],["AUXILIAR",5],["CONFERENTE",5],["ANALISTA",2],["DIRETOR",1],["ENCARREGADO",1],["CONSULTOR",1],["COORDENADOR",1],["SERV.GERAIS",1]],"he_sc_evol":[32471.81,28966.41,32653.06,33042.18,37091.88,0],"he_sp_evol":[15742.13,22446.39,17873.35,15477.25,18253.47,0],"hf_sc_evol":[116.71,249.91,339.96,285.36,103.69,0],"hf_sp_evol":[118.05,109.37,209.43,77.97,70.37,0],"he_sc_det":{"ATENDIMENTO":{"tv":1270.9,"th":49.94,"cl":[{"nome":"DOUGLAS KAHLER DA SILVA","val":347.76,"h":11.44,"mot":false},{"nome":"JULIA CAROLINE SILVA LIMA","val":279.4,"h":9.53,"mot":false},{"nome":"GUSTAVO ARRUDA DA SILVEIRA","val":264.89,"h":11.1,"mot":false},{"nome":"EDUARDA DIAS DE OLIVEIRA","val":119.56,"h":5.48,"mot":false},{"nome":"ANA ELIZA MARIANO DO NASCIMENTO","val":110.71,"h":3.53,"mot":false},{"nome":"LETICIA VITORIA RIBEIRO DA SILVA","val":74.41,"h":3.21,"mot":false},{"nome":"LUCAS RAFAEL DA SILVA","val":36.51,"h":2.38,"mot":false},{"nome":"GABRIEL HENRIQUE MARTINS SANTOS","val":35.1,"h":3.12,"mot":false},{"nome":"MAYARA SOUZA DE OLIVEIRA","val":2.56,"h":0.15,"mot":false}]},"COMERCIAL":{"tv":638.51,"th":29.03,"cl":[{"nome":"SABRINA DOS SANTOS LUCIANO","val":418.89,"h":17.07,"mot":false},{"nome":"CHISLLIA STEFANY SANTOS DA SILVA","val":168.4,"h":9.32,"mot":false},{"nome":"CAIO LUCIANO MATIAS","val":48.93,"h":2.5,"mot":false},{"nome":"DAYANE ROSANE DOS SANTOS","val":2.29,"h":0.14,"mot":false}]},"CONTROLADORIA":{"tv":1557.66,"th":68.88,"cl":[{"nome":"JOAO PEDRO BARROS MARQUES","val":871.52,"h":37.05,"mot":false},{"nome":"LEONARDO BELMONTE CLERICI","val":542.45,"h":23.4,"mot":false},{"nome":"JANAINA MARTINS DE SOUZA","val":143.69,"h":8.43,"mot":false}]},"ESTOQUE":{"tv":1156.9,"th":44.64,"cl":[{"nome":"MARCUS GEORGE CARVALHO DO NASCIMENTO","val":544.24,"h":19.44,"mot":false},{"nome":"OTACILIO BENEDITO DA SILVA","val":412.1,"h":14.1,"mot":false},{"nome":"JOAO ARAUJO COSTA","val":200.56,"h":11.1,"mot":false}]},"EXPEDICAO":{"tv":2362.78,"th":116.17,"cl":[{"nome":"JOAO GABRIEL DE OLIVEIRA SOARES","val":557.43,"h":30.28,"mot":false},{"nome":"ABNER FERNANDO DOS SANTOS","val":492.22,"h":30.08,"mot":false},{"nome":"LUIZ FERNANDO JACINTO","val":397.96,"h":0.0,"mot":false},{"nome":"JOÃO PAULO DE SOUSA","val":321.45,"h":16.44,"mot":false},{"nome":"LUCAS RIBEIRO DA SILVA LIMA","val":234.61,"h":18.11,"mot":false},{"nome":"JOSE AGUINALDO SANTOS DE SOUZA","val":147.56,"h":7.27,"mot":false},{"nome":"JOSÉ KENNEDY DE BRITO PINHEIRO","val":84.59,"h":6.53,"mot":false},{"nome":"JOSE FRANCISCO DOS SANTOS","val":47.52,"h":3.43,"mot":false},{"nome":"EMANOEL LUCAS SILVA DE LIMA","val":47.05,"h":3.45,"mot":false},{"nome":"MARCOS DAVID OLIVEIRA ALVES","val":32.39,"h":0.58,"mot":false}]},"FINANCEIRO":{"tv":661.78,"th":20.33,"cl":[{"nome":"BRUNA DOS SANTOS BRAGA","val":265.09,"h":2.38,"mot":false},{"nome":"LETICIA KRUMMENAUER","val":189.0,"h":11.55,"mot":false},{"nome":"MARIA EDUARDA DIAS DOS SANTOS","val":110.71,"h":0.42,"mot":false},{"nome":"LARA AFONSO MACHADO","val":55.96,"h":3.42,"mot":false},{"nome":"ANTONIA GESSICA ALVES DA SILVA","val":41.02,"h":2.56,"mot":false}]},"GERENCIAMENTO DE RISCO":{"tv":2015.89,"th":89.32,"cl":[{"nome":"THAIS DE CASSIA PACHECO","val":945.03,"h":46.25,"mot":false},{"nome":"LEANDRO OSMAR BERNDT","val":614.8,"h":15.42,"mot":false},{"nome":"RIENE MARTINS DOS SANTOS","val":414.44,"h":24.55,"mot":false},{"nome":"MATHEUS ANTONIO FERRAZ DOS SANTOS","val":41.62,"h":3.1,"mot":false}]},"MARKETING":{"tv":73.43,"th":3.59,"cl":[{"nome":"ISADORA MACHADO","val":73.43,"h":3.59,"mot":false}]},"OPERACAO":{"tv":22025.8,"th":879.83,"cl":[{"nome":"ROBSON VICENTE","val":2830.9,"h":63.37,"mot":true},{"nome":"JOSENIR DE SOUZA CUNHA","val":1917.98,"h":79.33,"mot":true},{"nome":"RAFAEL VICENTE","val":1663.91,"h":55.47,"mot":true},{"nome":"ITAUAN GONZAGA DA SILVA","val":1231.43,"h":46.31,"mot":true},{"nome":"MIRIAM PASSAIA DE OLIVEIRA","val":1224.41,"h":47.15,"mot":false},{"nome":"JAIR BATISTA","val":1109.51,"h":33.51,"mot":true},{"nome":"HELITON JUNIOR DIAS DE SOUZA","val":1028.11,"h":44.35,"mot":true},{"nome":"RAFAEL DE FREITAS","val":1027.91,"h":61.42,"mot":true},{"nome":"JAZIEL PEREIRA DO NASCIMENTO","val":1008.41,"h":36.25,"mot":true},{"nome":"ELIAS SANTOS MORAES","val":901.08,"h":50.83,"mot":true},{"nome":"DIEGO STANO","val":872.93,"h":31.38,"mot":true},{"nome":"RAFAELLA STEPHANY COUTINHO DA SILVA","val":838.21,"h":42.54,"mot":false},{"nome":"RONI FILIPE VICENTE","val":802.85,"h":23.4,"mot":true},{"nome":"ANTONIO CARLOS DA SILVA","val":792.51,"h":28.35,"mot":true},{"nome":"CELIO ROBERTO FERNANDES RIBEIRO FILHO","val":640.52,"h":25.39,"mot":false},{"nome":"FRANCILEUDO RODRIGUES DO BONFIM","val":636.73,"h":26.44,"mot":true},{"nome":"DULCINELSON PEREIRA DOS SANTOS","val":543.35,"h":27.48,"mot":true},{"nome":"VILSON MENDES SILVA","val":538.76,"h":34.03,"mot":true},{"nome":"ELDNER SANGALLI GAUNA","val":457.15,"h":18.1,"mot":false},{"nome":"FRANCISCO CLAUDICSON NASCIMENTO DE MOURA","val":444.86,"h":35.2,"mot":false},{"nome":"FABRICIO SILVA","val":430.8,"h":21.07,"mot":true},{"nome":"JOAO CARLOS FERREIRA DE FARIAS","val":394.16,"h":21.53,"mot":true},{"nome":"VALMI AMILTON MATIAS","val":221.69,"h":7.09,"mot":false},{"nome":"LUIZA RODRIGUES ALBINO","val":215.75,"h":8.39,"mot":false},{"nome":"GILBERTO DE OLIVEIRA","val":125.19,"h":6.14,"mot":true},{"nome":"SILVIO DA COSTA SOLANO","val":121.96,"h":5.14,"mot":true},{"nome":"JACKSON CHRISTIAN ALVES DA SILVA","val":4.73,"h":0.17,"mot":true}]},"RASTREAMENTO":{"tv":549.86,"th":22.4,"cl":[{"nome":"ARLON BELARMINDO MARTINA","val":305.73,"h":11.21,"mot":false},{"nome":"THAYANNE DE SOUZA COUTO","val":169.72,"h":8.03,"mot":false},{"nome":"VITORIA BENITER MEIRA","val":74.41,"h":3.16,"mot":false}]},"RECEPCAO":{"tv":18.27,"th":1.41,"cl":[{"nome":"SAYANG LUISA GUILLAMELAU ARAÚJO VIBOLT","val":18.27,"h":1.41,"mot":false}]},"RECURSOS HUMANOS":{"tv":265.54,"th":10.19,"cl":[{"nome":"DIULIA DA SILVA HOLDERBAUM ","val":223.92,"h":8.01,"mot":false},{"nome":"ISABELY ALVES MATHEUS NASCIMENTO","val":41.62,"h":2.18,"mot":false}]},"SERVIÇOS GERAIS":{"tv":444.86,"th":17.11,"cl":[{"nome":"ANA CLAUDIA PEREIRA PAULA RODRIGUES","val":444.86,"h":17.11,"mot":false}]}},"he_sp_det":{"ATENDIMENTO":{"tv":285.7,"th":15.33,"cl":[{"nome":"ADRIANA VIEIRA","val":285.7,"h":15.33,"mot":false}]},"EXPEDICAO":{"tv":6829.64,"th":510.0,"cl":[{"nome":"LUCAS DUARTE SANTANA","val":1167.22,"h":85.27,"mot":false},{"nome":"JOSE AUGUSTO DA SILVA","val":1083.45,"h":79.58,"mot":false},{"nome":"LUCAS FRANCO DOS SANTOS","val":905.09,"h":66.24,"mot":false},{"nome":"JOSIMAR RAMOS SOUSA","val":880.99,"h":64.36,"mot":false},{"nome":"TIAGO NOGUEIRA DA SILVA","val":664.44,"h":49.32,"mot":false},{"nome":"FLORIANO SANTOS DE JESUS","val":539.88,"h":39.44,"mot":false},{"nome":"MATHEUS RAMOS DE ALMEIDA","val":413.26,"h":31.33,"mot":false},{"nome":"DAVID SANTOS ANDRADE","val":402.72,"h":32.1,"mot":false},{"nome":"DIEGO PIRONE DE MELO","val":236.55,"h":14.4,"mot":false},{"nome":"MATHEUS SANTOS DA SILVA","val":170.7,"h":12.47,"mot":false},{"nome":"VANDERLEI ALVES SILVA","val":154.0,"h":11.41,"mot":false},{"nome":"DAVID DOS SANTOS ROSA","val":77.96,"h":4.43,"mot":false},{"nome":"MICHEL DA SILVA MARTINS","val":46.4,"h":11.19,"mot":false},{"nome":"GUSTAVO RAMOS DE OLIVEIRA","val":45.89,"h":4.39,"mot":false},{"nome":"FELIPE MOURA RICCI","val":41.09,"h":4.07,"mot":false}]},"OPERACAO":{"tv":8237.72,"th":455.28,"cl":[{"nome":"FLAVIO DE SOUZA MORAES","val":1396.4,"h":71.32,"mot":true},{"nome":"WILLIAM DOS SANTOS RODRIGUES","val":1201.39,"h":62.57,"mot":true},{"nome":"WILLIAN PLACIDO GONCALVES","val":1173.36,"h":61.11,"mot":true},{"nome":"ITAMAR DE OLIVEIRA DA SILVA","val":1134.19,"h":59.07,"mot":true},{"nome":"VANDO COELHO DE SOUSA","val":989.22,"h":51.52,"mot":true},{"nome":"JOSE MARIO PIMENTA LOBATO","val":970.0,"h":50.57,"mot":true},{"nome":"IGOR WESLLEY DA SILVA CAMPOS","val":515.55,"h":30.53,"mot":false},{"nome":"HAUAN ARAUJO ROCHA DA SILVA","val":286.49,"h":11.22,"mot":false},{"nome":"ARI MARCOS DE SOUSA OLIVEIRA","val":285.7,"h":35.45,"mot":false},{"nome":"BRUNA GOMES MORORO","val":103.9,"h":7.59,"mot":false},{"nome":"CARLOS EDUARDO SILVA","val":65.86,"h":3.43,"mot":true},{"nome":"ISABELLA DA SILVA RODRIGUES","val":59.13,"h":6.32,"mot":false},{"nome":"MARCELY RODRIGUES DE ALMEIDA","val":56.53,"h":4.58,"mot":false}]},"SERVIÇOS GERAIS":{"tv":124.19,"th":7.34,"cl":[{"nome":"RAFAELA CRISTINA DA SILVA","val":124.19,"h":7.34,"mot":false}]}},"hf_sc_det":{"ATENDIMENTO":{"th":13.28,"cl":[{"nome":"GUSTAVO ARRUDA DA SILVEIRA","h":6.27,"mot":false},{"nome":"DOUGLAS KAHLER DA SILVA","h":4.05,"mot":false},{"nome":"LETICIA VITORIA RIBEIRO DA SILVA","h":2.22,"mot":false},{"nome":"EDUARDA DIAS DE OLIVEIRA","h":0.35,"mot":false},{"nome":"ANA ELIZA MARIANO DO NASCIMENTO","h":0.25,"mot":false},{"nome":"LUCAS RAFAEL DA SILVA","h":0.08,"mot":false},{"nome":"JULIA CAROLINE SILVA LIMA","h":0.06,"mot":false}]},"COMERCIAL":{"th":3.83,"cl":[{"nome":"CAIO LUCIANO MATIAS","h":3.3,"mot":false},{"nome":"SABRINA DOS SANTOS LUCIANO","h":0.53,"mot":false}]},"CONTROLADORIA":{"th":4.64,"cl":[{"nome":"JANAINA MARTINS DE SOUZA","h":4.41,"mot":false},{"nome":"LEONARDO BELMONTE CLERICI","h":0.23,"mot":false}]},"ESTOQUE":{"th":0.57,"cl":[{"nome":"OTACILIO BENEDITO DA SILVA","h":0.57,"mot":false}]},"EXPEDICAO":{"th":207.94,"cl":[{"nome":"JACSON DENIO CLEMENTINO","h":176.0,"mot":false},{"nome":"ABNER FERNANDO DOS SANTOS","h":8.48,"mot":false},{"nome":"JOSÉ KENNEDY DE BRITO PINHEIRO","h":8.38,"mot":false},{"nome":"JOSE FRANCISCO DOS SANTOS","h":7.11,"mot":false},{"nome":"JOAO GABRIEL DE OLIVEIRA SOARES","h":6.18,"mot":false},{"nome":"LUIZ FERNANDO JACINTO","h":1.04,"mot":false},{"nome":"LUCAS RIBEIRO DA SILVA LIMA","h":0.54,"mot":false},{"nome":"JOÃO PAULO DE SOUSA","h":0.21,"mot":false}]},"FINANCEIRO":{"th":4.18,"cl":[{"nome":"BRUNA DOS SANTOS BRAGA","h":4.18,"mot":false}]},"GERENCIAMENTO DE RISCO":{"th":6.41,"cl":[{"nome":"LEANDRO OSMAR BERNDT","h":6.41,"mot":false}]},"MARKETING":{"th":2.09,"cl":[{"nome":"ISADORA MACHADO","h":2.09,"mot":false}]},"OPERACAO":{"th":13.54,"cl":[{"nome":"CELIO ROBERTO FERNANDES RIBEIRO FILHO","h":8.21,"mot":false},{"nome":"ELDNER SANGALLI GAUNA","h":3.15,"mot":false},{"nome":"VALMI AMILTON MATIAS","h":1.12,"mot":false},{"nome":"MIRIAM PASSAIA DE OLIVEIRA","h":0.56,"mot":false},{"nome":"LUIZA RODRIGUES ALBINO","h":0.38,"mot":false},{"nome":"RAFAELLA STEPHANY COUTINHO DA SILVA","h":0.12,"mot":false}]},"RASTREAMENTO":{"th":28.38,"cl":[{"nome":"ARLON BELARMINDO MARTINA","h":14.12,"mot":false},{"nome":"VITORIA BENITER MEIRA","h":14.0,"mot":false},{"nome":"THAYANNE DE SOUZA COUTO","h":0.26,"mot":false}]},"RECEPCAO":{"th":0.29,"cl":[{"nome":"SAYANG LUISA GUILLAMELAU ARAÚJO VIBOLT","h":0.29,"mot":false}]},"RECURSOS HUMANOS":{"th":0.21,"cl":[{"nome":"ISABELY ALVES MATHEUS NASCIMENTO","h":0.21,"mot":false}]}},"hf_sp_det":{"COMERCIAL":{"th":0.07,"cl":[{"nome":"MARCELO CASTRO HOPPE","h":0.07,"mot":false}]},"EXPEDICAO":{"th":65.41,"cl":[{"nome":"LUCAS SILVA QUEIROZ","h":18.19,"mot":false},{"nome":"THIAGO DA SILVA COSTA","h":11.5,"mot":false},{"nome":"LEONARDO DE FREITAS MENDES","h":11.43,"mot":false},{"nome":"MICHEL DA SILVA MARTINS","h":7.4,"mot":false},{"nome":"FLORIANO SANTOS DE JESUS","h":6.17,"mot":false},{"nome":"DAVID SANTOS ANDRADE","h":2.28,"mot":false},{"nome":"DIEGO PIRONE DE MELO","h":2.08,"mot":false},{"nome":"GUSTAVO RAMOS DE OLIVEIRA","h":2.0,"mot":false},{"nome":"FELIPE MOURA RICCI","h":1.53,"mot":false},{"nome":"MATHEUS RAMOS DE ALMEIDA","h":1.14,"mot":false},{"nome":"JOSE AUGUSTO DA SILVA","h":0.43,"mot":false},{"nome":"TIAGO NOGUEIRA DA SILVA","h":0.38,"mot":false},{"nome":"DAVID DOS SANTOS ROSA","h":0.37,"mot":false},{"nome":"JOSE CARLOS ALVES DA SILVA","h":0.23,"mot":false},{"nome":"VANDERLEI ALVES SILVA","h":0.16,"mot":false},{"nome":"LUCAS FRANCO DOS SANTOS","h":0.12,"mot":false}]},"OPERACAO":{"th":12.45,"cl":[{"nome":"WILLIAM DOS SANTOS RODRIGUES","h":2.38,"mot":true},{"nome":"ITAMAR DE OLIVEIRA DA SILVA","h":2.06,"mot":true},{"nome":"ISABELLA DA SILVA RODRIGUES","h":2.0,"mot":false},{"nome":"JULIA SIMOES SOUSA","h":1.58,"mot":false},{"nome":"VANDO COELHO DE SOUSA","h":1.37,"mot":true},{"nome":"JOSE MARIO PIMENTA LOBATO","h":1.35,"mot":true},{"nome":"ARI MARCOS DE SOUSA OLIVEIRA","h":1.26,"mot":false},{"nome":"MARCELY RODRIGUES DE ALMEIDA","h":0.45,"mot":false}]},"SERVIÇOS GERAIS":{"th":0.04,"cl":[{"nome":"RAFAELA CRISTINA DA SILVA","h":0.04,"mot":false}]}},"tenure":[{"f":"Menos de 3","q":84,"p":"66.7%"},{"f":"3 a 5","q":22,"p":"17.5%"},{"f":"6 a 8","q":4,"p":"3.2%"},{"f":"9 a 11","q":7,"p":"5.6%"},{"f":"12 a 15","q":8,"p":"6.3%"},{"f":"15+","q":1,"p":"0.8%"}],"period":"01/04/2026 — 30/04/2026","kpi":{"total":126,"sc":85,"sp":41,"admSc":4,"admSp":0,"demSc":3,"demSp":1,"prom":0,"exp":5},"turnover":{"sc":"4,60%","sp":"1,19%","scWarn":true},"desligamentos":[{"nome":"FABRICIO SILVA","un":"SC","motivo":"PROPOSTA EXTERNA","tipo":"COLABORADOR"},{"nome":"ISAAC JACOB ROCHA","un":"SC","motivo":"PERFORMANCE","tipo":"EXPERIÊNCIA"},{"nome":"MARCOS DAVID OLIVEIRA ALVES","un":"SC","motivo":"MOTIVOS PESSOAIS","tipo":"COLABORADOR"},{"nome":"VALDIR VIEIRA DA CONCEICAO","un":"SP","motivo":"PERFORMANCE","tipo":"EXPERIÊNCIA"}],"experiencia":[{"nome":"DAYANE ROSANE DOS SANTOS","un":"SC"},{"nome":"GUILHERME PEREIRA DE JESUS","un":"SC"},{"nome":"GUSTAVO ARRUDA DA SILVEIRA","un":"SC"},{"nome":"MAYARA SOUZA DE OLIVEIRA","un":"SC"},{"nome":"RIENE MARTINS DOS SANTOS","un":"SC"}],"prom":{"num":0,"name":"Nenhuma promoção em Abril/2026","acum":9,"nomes":[]},"absent":{"sc":10,"sp":12,"acum":"186 dias"},"he_sc_acum":"R$ 127.133","he_sp_acum":"R$ 71.539","hf_sc_acum":"991,94h","hf_sp_acum":"514,82h","tenure_sc":[{"f":"Menos de 3","q":55,"p":"64.7%"},{"f":"3 a 5","q":10,"p":"11.8%"},{"f":"6 a 8","q":4,"p":"4.7%"},{"f":"9 a 11","q":7,"p":"8.2%"},{"f":"12 a 15","q":8,"p":"9.4%"},{"f":"15+","q":1,"p":"1.2%"}],"tenure_sp":[{"f":"Menos de 3","q":29,"p":"70.7%"},{"f":"3 a 5","q":12,"p":"29.3%"}]},"mai":{"gen_sc":{"M":54,"F":25,"total":83},"gen_sp":{"M":34,"F":7,"total":41},"nat_sc":{"SUL":48,"NORDESTE":15,"SUDESTE":11,"NORTE":7,"C.OESTE":2},"nat_sp":{"SUL":1,"NORDESTE":11,"SUDESTE":29,"NORTE":0,"C.OESTE":0},"cargo_sc":[["MOTORISTA",18],["ANALISTA",17],["AUXILIAR",10],["CONFERENTE",8],["LIDER",8],["COORDENADOR",5],["EXEC.VENDAS",4],["DIRETOR",4],["AJD. CARGA",3],["RECEPCIONISTA",2],["CONSULTOR",1],["SERV.GERAIS",1],["ESTAGIO",1],["ANALISTA ",1]],"cargo_sp":[["AJD. CARGA",14],["MOTORISTA",7],["AUXILIAR",5],["CONFERENTE",5],["ANALISTA",2],["DIRETOR",1],["ENCARREGADO",1],["CONSULTOR",1],["COORDENADOR",1],["SERV.GERAIS",1]],"he_sc_evol":[32471.81,28966.41,32653.06,33042.18,37091.88,0],"he_sp_evol":[15742.13,22446.39,17873.35,15477.25,18253.47,0],"hf_sc_evol":[116.71,249.91,339.96,285.36,103.69,0],"hf_sp_evol":[118.05,109.37,209.43,77.97,70.37,0],"he_sc_det":{"ATENDIMENTO":{"tv":2092.1,"th":80.81,"cl":[{"nome":"DOUGLAS KAHLER DA SILVA","val":698.84,"h":24.33,"mot":false},{"nome":"JULIA CAROLINE SILVA LIMA","val":407.98,"h":13.19,"mot":false},{"nome":"GUSTAVO ARRUDA DA SILVEIRA","val":316.69,"h":13.15,"mot":false},{"nome":"LETICIA VITORIA RIBEIRO DA SILVA","val":255.33,"h":10.44,"mot":false},{"nome":"ANA ELIZA MARIANO DO NASCIMENTO","val":175.04,"h":5.29,"mot":false},{"nome":"EDUARDA DIAS DE OLIVEIRA","val":97.37,"h":4.23,"mot":false},{"nome":"GABRIEL HENRIQUE MARTINS SANTOS","val":59.85,"h":5.32,"mot":false},{"nome":"MAYARA SOUZA DE OLIVEIRA","val":56.68,"h":3.31,"mot":false},{"nome":"LUCAS RAFAEL DA SILVA","val":24.32,"h":1.55,"mot":false}]},"COMERCIAL":{"tv":414.22,"th":18.37,"cl":[{"nome":"SABRINA DOS SANTOS LUCIANO","val":244.65,"h":9.45,"mot":false},{"nome":"CAIO LUCIANO MATIAS","val":72.48,"h":3.51,"mot":false},{"nome":"CHISLLIA STEFANY SANTOS DA SILVA","val":59.28,"h":3.11,"mot":false},{"nome":"DAYANE ROSANE DOS SANTOS","val":37.81,"h":2.3,"mot":false}]},"CONTROLADORIA":{"tv":1073.61,"th":46.69,"cl":[{"nome":"JOAO PEDRO BARROS MARQUES","val":725.14,"h":29.22,"mot":false},{"nome":"JANAINA MARTINS DE SOUZA","val":218.85,"h":12.17,"mot":false},{"nome":"LEONARDO BELMONTE CLERICI","val":129.62,"h":5.3,"mot":false}]},"ESTOQUE":{"tv":1570.06,"th":59.57,"cl":[{"nome":"MARCUS GEORGE CARVALHO DO NASCIMENTO","val":623.5,"h":21.11,"mot":false},{"nome":"OTACILIO BENEDITO DA SILVA","val":559.03,"h":18.13,"mot":false},{"nome":"JOAO ARAUJO COSTA","val":387.53,"h":20.33,"mot":false}]},"EXPEDICAO":{"tv":4125.57,"th":209.04,"cl":[{"nome":"ABNER FERNANDO DOS SANTOS","val":1093.82,"h":63.36,"mot":false},{"nome":"JOAO GABRIEL DE OLIVEIRA SOARES","val":860.57,"h":44.31,"mot":false},{"nome":"JOÃO PAULO DE SOUSA","val":798.57,"h":58.43,"mot":false},{"nome":"LUIZ FERNANDO JACINTO","val":657.36,"h":0.0,"mot":false},{"nome":"LUCAS RIBEIRO DA SILVA LIMA","val":356.57,"h":26.09,"mot":false},{"nome":"JOSE AGUINALDO SANTOS DE SOUZA","val":199.36,"h":9.31,"mot":false},{"nome":"JOSE FRANCISCO DOS SANTOS","val":130.17,"h":7.54,"mot":false},{"nome":"JOSÉ KENNEDY DE BRITO PINHEIRO","val":29.15,"h":0.0,"mot":false}]},"FINANCEIRO":{"tv":488.69,"th":23.14,"cl":[{"nome":"BRUNA DOS SANTOS BRAGA","val":148.81,"h":4.31,"mot":false},{"nome":"LETICIA KRUMMENAUER","val":140.7,"h":8.15,"mot":false},{"nome":"ANTONIA GESSICA ALVES DA SILVA","val":122.89,"h":7.27,"mot":false},{"nome":"LARA AFONSO MACHADO","val":38.66,"h":2.32,"mot":false},{"nome":"MARIA EDUARDA DIAS DOS SANTOS","val":37.63,"h":1.09,"mot":false}]},"GERENCIAMENTO DE RISCO":{"tv":1424.0,"th":68.03,"cl":[{"nome":"THAIS DE CASSIA PACHECO","val":627.94,"h":30.41,"mot":false},{"nome":"MATHEUS ANTONIO FERRAZ DOS SANTOS","val":322.98,"h":17.25,"mot":false},{"nome":"RIENE MARTINS DOS SANTOS","val":248.04,"h":15.02,"mot":false},{"nome":"LEANDRO OSMAR BERNDT","val":225.04,"h":5.35,"mot":false}]},"MARKETING":{"tv":153.21,"th":7.1,"cl":[{"nome":"ISADORA MACHADO","val":153.21,"h":7.1,"mot":false}]},"OPERACAO":{"tv":23833.92,"th":1795.39,"cl":[{"nome":"ROBSON VICENTE","val":3115.56,"h":65.15,"mot":true},{"nome":"RAFAEL VICENTE","val":2112.5,"h":66.59,"mot":true},{"nome":"RONI FILIPE VICENTE","val":1778.26,"h":50.24,"mot":true},{"nome":"FRANCILEUDO RODRIGUES DO BONFIM","val":1413.33,"h":53.56,"mot":true},{"nome":"JAIR BATISTA","val":1412.21,"h":46.29,"mot":true},{"nome":"ITAUAN GONZAGA DA SILVA","val":1363.68,"h":46.55,"mot":true},{"nome":"MIRIAM PASSAIA DE OLIVEIRA","val":1278.72,"h":49.38,"mot":false},{"nome":"JAZIEL PEREIRA DO NASCIMENTO","val":1104.22,"h":39.34,"mot":true},{"nome":"ANTONIO CARLOS DA SILVA","val":1095.63,"h":37.15,"mot":true},{"nome":"RAFAEL DE FREITAS","val":980.29,"h":57.37,"mot":true},{"nome":"DIEGO STANO","val":937.58,"h":32.45,"mot":true},{"nome":"FRANCISCO CLAUDICSON NASCIMENTO DE MOURA","val":919.09,"h":44.51,"mot":false},{"nome":"ELIAS SANTOS MORAES","val":792.09,"h":43.1,"mot":true},{"nome":"VILSON MENDES SILVA","val":671.74,"h":42.43,"mot":true},{"nome":"HELITON JUNIOR DIAS DE SOUZA","val":660.33,"h":27.0,"mot":true},{"nome":"JOSENIR DE SOUZA CUNHA","val":632.53,"h":22.53,"mot":true},{"nome":"GILBERTO DE OLIVEIRA","val":553.94,"h":27.43,"mot":true},{"nome":"VALMI AMILTON MATIAS","val":462.16,"h":14.01,"mot":false},{"nome":"SILVIO DA COSTA SOLANO","val":409.65,"h":17.23,"mot":true},{"nome":"LUIZA RODRIGUES ALBINO","val":404.83,"h":15.3,"mot":false},{"nome":"JOAO CARLOS FERREIRA DE FARIAS","val":385.26,"h":19.54,"mot":true},{"nome":"ELDNER SANGALLI GAUNA","val":383.73,"h":16.08,"mot":false},{"nome":"CELIO ROBERTO FERNANDES RIBEIRO FILHO","val":378.99,"h":14.24,"mot":false},{"nome":"JACKSON CHRISTIAN ALVES DA SILVA","val":288.79,"h":10.39,"mot":true},{"nome":"RAFAELLA STEPHANY COUTINHO DA SILVA","val":166.97,"h":8.29,"mot":false},{"nome":"DULCINELSON PEREIRA DOS SANTOS","val":131.84,"h":6.32,"mot":true}]},"RASTREAMENTO":{"tv":940.47,"th":40.53,"cl":[{"nome":"THAYANNE DE SOUZA COUTO","val":629.57,"h":27.18,"mot":false},{"nome":"ARLON BELARMINDO MARTINA","val":204.57,"h":7.11,"mot":false},{"nome":"VITORIA BENITER MEIRA","val":106.33,"h":6.24,"mot":false}]},"RECEPCAO":{"tv":52.48,"th":3.84,"cl":[{"nome":"SAYANG LUISA GUILLAMELAU ARAÚJO VIBOLT","val":47.15,"h":3.45,"mot":false},{"nome":"VICTORIA GABRIELLE SILVA SANTOS","val":5.33,"h":0.39,"mot":false}]},"RECURSOS HUMANOS":{"tv":478.91,"th":19.19,"cl":[{"nome":"DIULIA DA SILVA HOLDERBAUM ","val":294.22,"h":10.02,"mot":false},{"nome":"ISABELY ALVES MATHEUS NASCIMENTO","val":184.69,"h":9.17,"mot":false}]},"SERVIÇOS GERAIS":{"tv":444.64,"th":16.21,"cl":[{"nome":"ANA CLAUDIA PEREIRA PAULA RODRIGUES","val":444.64,"h":16.21,"mot":false}]}},"he_sp_det":{"EXPEDICAO":{"tv":8413.54,"th":497.6,"cl":[{"nome":"JOSIMAR RAMOS SOUSA","val":1113.79,"h":81.22,"mot":false},{"nome":"LUCAS DUARTE SANTANA","val":1041.47,"h":76.05,"mot":false},{"nome":"JOSE AUGUSTO DA SILVA","val":871.27,"h":63.39,"mot":false},{"nome":"THIAGO DA SILVA COSTA","val":844.13,"h":0.0,"mot":false},{"nome":"MATHEUS RAMOS DE ALMEIDA","val":844.13,"h":61.4,"mot":false},{"nome":"LUCAS FRANCO DOS SANTOS","val":815.84,"h":59.36,"mot":false},{"nome":"TIAGO NOGUEIRA DA SILVA","val":726.18,"h":53.03,"mot":false},{"nome":"DIEGO PIRONE DE MELO","val":580.62,"h":0.0,"mot":false},{"nome":"DAVID SANTOS ANDRADE","val":580.62,"h":42.25,"mot":false},{"nome":"GUSTAVO RAMOS DE OLIVEIRA","val":269.45,"h":14.02,"mot":false},{"nome":"DAVID DOS SANTOS ROSA","val":211.21,"h":11.0,"mot":false},{"nome":"MICHEL DA SILVA MARTINS","val":193.01,"h":14.06,"mot":false},{"nome":"FLORIANO SANTOS DE JESUS","val":130.95,"h":9.34,"mot":false},{"nome":"MATHEUS SANTOS DA SILVA","val":80.31,"h":5.52,"mot":false},{"nome":"VANDERLEI ALVES SILVA","val":67.99,"h":4.58,"mot":false},{"nome":"FELIPE MOURA RICCI","val":22.72,"h":1.11,"mot":false},{"nome":"LUCAS SILVA QUEIROZ","val":19.85,"h":1.27,"mot":false}]},"OPERACAO":{"tv":9716.3,"th":510.76,"cl":[{"nome":"CARLOS EDUARDO SILVA","val":1924.56,"h":100.14,"mot":true},{"nome":"FLAVIO DE SOUZA MORAES","val":1760.07,"h":91.4,"mot":true},{"nome":"WILLIAM DOS SANTOS RODRIGUES","val":1403.89,"h":73.07,"mot":true},{"nome":"WILLIAN PLACIDO GONCALVES","val":1306.29,"h":68.02,"mot":true},{"nome":"VANDO COELHO DE SOUSA","val":1028.84,"h":53.35,"mot":true},{"nome":"ITAMAR DE OLIVEIRA DA SILVA","val":796.19,"h":41.28,"mot":true},{"nome":"IGOR WESLLEY DA SILVA CAMPOS","val":748.76,"h":44.34,"mot":false},{"nome":"HAUAN ARAUJO ROCHA DA SILVA","val":410.67,"h":16.05,"mot":false},{"nome":"BRUNA GOMES MORORO","val":132.09,"h":9.39,"mot":false},{"nome":"ISABELLA DA SILVA RODRIGUES","val":109.51,"h":8.0,"mot":false},{"nome":"MARCELY RODRIGUES DE ALMEIDA","val":54.53,"h":3.59,"mot":false},{"nome":"ARI MARCOS DE SOUSA OLIVEIRA","val":40.9,"h":2.13,"mot":false}]},"SERVIÇOS GERAIS":{"tv":123.63,"th":7.16,"cl":[{"nome":"RAFAELA CRISTINA DA SILVA","val":123.63,"h":7.16,"mot":false}]}},"hf_sc_det":{"ATENDIMENTO":{"th":8.04,"cl":[{"nome":"GUSTAVO ARRUDA DA SILVEIRA","h":4.39,"mot":false},{"nome":"JULIA CAROLINE SILVA LIMA","h":2.04,"mot":false},{"nome":"DOUGLAS KAHLER DA SILVA","h":1.16,"mot":false},{"nome":"ANA ELIZA MARIANO DO NASCIMENTO","h":0.45,"mot":false}]},"COMERCIAL":{"th":8.54,"cl":[{"nome":"SABRINA DOS SANTOS LUCIANO","h":7.22,"mot":false},{"nome":"CAIO LUCIANO MATIAS","h":1.09,"mot":false},{"nome":"DAYANE ROSANE DOS SANTOS","h":0.23,"mot":false}]},"CONTROLADORIA":{"th":0.51,"cl":[{"nome":"LEONARDO BELMONTE CLERICI","h":0.51,"mot":false}]},"ESTOQUE":{"th":1.46,"cl":[{"nome":"OTACILIO BENEDITO DA SILVA","h":1.46,"mot":false}]},"EXPEDICAO":{"th":29.0,"cl":[{"nome":"LUCAS RIBEIRO DA SILVA LIMA","h":16.38,"mot":false},{"nome":"LUIZ FERNANDO JACINTO","h":12.21,"mot":false},{"nome":"JOÃO PAULO DE SOUSA","h":0.29,"mot":false},{"nome":"ABNER FERNANDO DOS SANTOS","h":0.12,"mot":false}]},"GERENCIAMENTO DE RISCO":{"th":9.35,"cl":[{"nome":"LEANDRO OSMAR BERNDT","h":9.35,"mot":false}]},"MARKETING":{"th":1.49,"cl":[{"nome":"ISADORA MACHADO","h":1.49,"mot":false}]},"OPERACAO":{"th":21.74,"cl":[{"nome":"VALMI AMILTON MATIAS","h":16.38,"mot":false},{"nome":"CELIO ROBERTO FERNANDES RIBEIRO FILHO","h":5.06,"mot":false},{"nome":"MIRIAM PASSAIA DE OLIVEIRA","h":0.3,"mot":false}]},"RASTREAMENTO":{"th":23.24,"cl":[{"nome":"VITORIA BENITER MEIRA","h":18.19,"mot":false},{"nome":"ARLON BELARMINDO MARTINA","h":5.05,"mot":false}]},"RECEPCAO":{"th":0.32,"cl":[{"nome":"SAYANG LUISA GUILLAMELAU ARAÚJO VIBOLT","h":0.32,"mot":false}]}},"hf_sp_det":{"EXPEDICAO":{"th":60.16,"cl":[{"nome":"LUCAS SILVA QUEIROZ","h":26.59,"mot":false},{"nome":"JOSE AUGUSTO DA SILVA","h":17.36,"mot":false},{"nome":"LUCAS FRANCO DOS SANTOS","h":6.56,"mot":false},{"nome":"MICHEL DA SILVA MARTINS","h":3.3,"mot":false},{"nome":"THIAGO DA SILVA COSTA","h":2.0,"mot":false},{"nome":"JOSE CARLOS ALVES DA SILVA","h":1.3,"mot":false},{"nome":"FELIPE MOURA RICCI","h":1.05,"mot":false},{"nome":"MATHEUS SANTOS DA SILVA","h":0.49,"mot":false},{"nome":"DAVID SANTOS ANDRADE","h":0.33,"mot":false},{"nome":"FLORIANO SANTOS DE JESUS","h":0.32,"mot":false},{"nome":"VANDERLEI ALVES SILVA","h":0.27,"mot":false},{"nome":"LEONARDO DE FREITAS MENDES","h":0.26,"mot":false},{"nome":"DAVID DOS SANTOS ROSA","h":0.2,"mot":false},{"nome":"MATHEUS RAMOS DE ALMEIDA","h":0.13,"mot":false}]},"OPERACAO":{"th":10.21,"cl":[{"nome":"IGOR WESLLEY DA SILVA CAMPOS","h":3.27,"mot":false},{"nome":"ITAMAR DE OLIVEIRA DA SILVA","h":3.13,"mot":true},{"nome":"HAUAN ARAUJO ROCHA DA SILVA","h":1.41,"mot":false},{"nome":"JULIA SIMOES SOUSA","h":1.09,"mot":false},{"nome":"MARCELY RODRIGUES DE ALMEIDA","h":0.56,"mot":false},{"nome":"WILLIAN PLACIDO GONCALVES","h":0.42,"mot":true},{"nome":"BRUNA GOMES MORORO","h":0.27,"mot":false},{"nome":"VANDO COELHO DE SOUSA","h":0.06,"mot":true}]}},"tenure":[{"f":"Menos de 3","q":81,"p":"65.3%"},{"f":"3 a 5","q":23,"p":"18.5%"},{"f":"6 a 8","q":4,"p":"3.2%"},{"f":"9 a 11","q":6,"p":"4.8%"},{"f":"12 a 15","q":9,"p":"7.3%"},{"f":"15+","q":1,"p":"0.8%"}],"period":"01/05/2026 — 31/05/2026","kpi":{"total":124,"sc":83,"sp":41,"admSc":2,"admSp":0,"demSc":4,"demSp":0,"prom":1,"exp":7},"turnover":{"sc":"3,65%","sp":"0,00%","scWarn":false},"desligamentos":[{"nome":"ELDNER SANGALLI GAUNA","un":"SC","motivo":"PROPOSTA EXTERNA","tipo":"COLABORADOR"},{"nome":"VILSON MENDES SILVA","un":"SC","motivo":"PERFORMANCE","tipo":"EXPERIÊNCIA"},{"nome":"EMANOEL LUCAS SILVA DE LIMA","un":"SC","motivo":"PROPOSTA EXTERNA","tipo":"COLABORADOR"},{"nome":"JOSÉ KENNEDY DE BRITO PINHEIRO","un":"SC","motivo":"PROPOSTA EXTERNA","tipo":"COLABORADOR"}],"experiencia":[{"nome":"DAYANE ROSANE DOS SANTOS","un":"SC"},{"nome":"GUILHERME PEREIRA DE JESUS","un":"SC"},{"nome":"GUSTAVO ARRUDA DA SILVEIRA","un":"SC"},{"nome":"DAVID EDISON SILVA DE MORAES","un":"SC"},{"nome":"MAYARA SOUZA DE OLIVEIRA","un":"SC"},{"nome":"RIENE MARTINS DOS SANTOS","un":"SC"},{"nome":"VICTORIA GABRIELLE SILVA SANTOS","un":"SC"}],"prom":{"num":1,"name":"JOSE FRANCISCO DOS SANTOS","acum":10,"nomes":["JOSE FRANCISCO DOS SANTOS"]},"absent":{"sc":24,"sp":6,"acum":"216 dias"},"he_sc_acum":"R$ 164.225","he_sp_acum":"R$ 89.793","hf_sc_acum":"1.095,63h","hf_sp_acum":"585,19h","tenure_sc":[{"f":"Menos de 3","q":52,"p":"62.7%"},{"f":"3 a 5","q":11,"p":"13.3%"},{"f":"6 a 8","q":4,"p":"4.8%"},{"f":"9 a 11","q":6,"p":"7.2%"},{"f":"12 a 15","q":9,"p":"10.8%"},{"f":"15+","q":1,"p":"1.2%"}],"tenure_sp":[{"f":"Menos de 3","q":29,"p":"70.7%"},{"f":"3 a 5","q":12,"p":"29.3%"}]},"jun":{"period":"01/06/2026 — 30/06/2026","kpi":{"total":121,"sc":81,"sp":40,"admSc":2,"admSp":1,"demSc":3,"demSp":1,"prom":5,"exp":7},"turnover":{"sc":"3,04%","sp":"2,05%","scWarn":false},"desligamentos":[{"nome":"ELIAS SANTOS MORAES","un":"SC","motivo":"PROPOSTA EXTERNA","tipo":"COLABORADOR"},{"nome":"JOSE MARIO PIMENTA LOBATO","un":"SP","motivo":"PROPOSTA EXTERNA","tipo":"COLABORADOR"},{"nome":"LETICIA KRUMMENAUER","un":"SC","motivo":"MOTIVOS PESSOAIS","tipo":"COLABORADOR"},{"nome":"TIAGO GABRIEL DE SANTANA","un":"SC","motivo":"MOTIVOS PESSOAIS","tipo":"COLABORADOR"}],"experiencia":[{"nome":"ANDERSON DA ROSA FERNANDES","un":"SC"},{"nome":"DAVID EDISON SILVA DE MORAES","un":"SC"},{"nome":"DAYANE ROSANE DOS SANTOS","un":"SC"},{"nome":"HENRIQUE RAMOS DE ALMEIDA","un":"SP"},{"nome":"MARIA JULIA NICOLAO","un":"SC"},{"nome":"MAYARA SOUZA DE OLIVEIRA","un":"SC"},{"nome":"VICTORIA GABRIELLE SILVA SANTOS","un":"SC"}],"prom":{"num":5,"name":"JOAO GABRIEL DE OLIVEIRA SOARES | ANTONIA GESSICA ALVES DA SILVA | LARA AFONSO MACHADO | JANAINA MARTINS DE SOUZA | MIRIAM PASSAIA DE OLIVEIRA","acum":10,"nomes":["JOAO GABRIEL DE OLIVEIRA SOARES","ANTONIA GESSICA ALVES DA SILVA","LARA AFONSO MACHADO","JANAINA MARTINS DE SOUZA","MIRIAM PASSAIA DE OLIVEIRA"]},"absent":{"sc":15,"sp":19,"acum":253},"gen_sc":{"M":51,"F":24,"total":81},"gen_sp":{"M":32,"F":7,"total":40},"nat_sc":{"SUL":48,"NORDESTE":15,"SUDESTE":10,"NORTE":6,"C.OESTE":2},"nat_sp":{"SUL":1,"NORDESTE":10,"SUDESTE":29,"NORTE":0,"C.OESTE":0},"cargo_sc":[["ANALISTA",19],["MOTORISTA",17],["LIDER",10],["CONFERENTE",7],["AUXILIAR",7],["COORDENADOR",5],["AJD. CARGA",4],["DIRETOR",4],["EXEC.VENDAS",3],["ESTAGIO",2],["SERV.GERAIS",1],["ANALISTA ",1],["RECEPCIONISTA",1]],"cargo_sp":[["AJD. CARGA",15],["MOTORISTA",7],["AUXILIAR",5],["CONFERENTE",5],["ANALISTA",2],["DIRETOR",1],["ENCARREGADO",1],["CONSULTOR",1],["COORDENADOR",1],["SERV.GERAIS",1]],"he_sc_evol":[32471.81,28966.41,32653.06,33042.18,37091.88,54751.9],"he_sp_evol":[15742.13,22446.39,17873.35,15477.25,18253.47,14766.13],"hf_sc_evol":[116.71,249.91,339.96,285.36,103.69,103.35],"hf_sp_evol":[118.05,109.37,209.43,77.97,70.37,107.77],"he_sc_acum":"R$ 218.977,24","he_sp_acum":"R$ 104.558,72","hf_sc_acum":"1.198,98h","hf_sp_acum":"692,96h","he_sc_det":{"ATENDIMENTO":{"tv":4004.09,"th":148.19,"cl":[{"nome":"LETICIA VITORIA RIBEIRO DA SILVA","val":862.84,"h":31.28,"mot":false},{"nome":"JULIA CAROLINE SILVA LIMA","val":771.31,"h":21.52,"mot":false},{"nome":"GUSTAVO ARRUDA DA SILVEIRA","val":676.02,"h":25.02,"mot":false},{"nome":"EDUARDA DIAS DE OLIVEIRA","val":599.39,"h":26.04,"mot":false},{"nome":"DOUGLAS KAHLER DA SILVA","val":563.46,"h":17.23,"mot":false},{"nome":"MAYARA SOUZA DE OLIVEIRA","val":302.75,"h":15.0,"mot":false},{"nome":"LUCAS RAFAEL DA SILVA","val":228.32,"h":12.1,"mot":false}]},"COMERCIAL":{"tv":1941.54,"th":73.1,"cl":[{"nome":"CHISLLIA STEFANY SANTOS DA SILVA","val":669.52,"h":32.39,"mot":false},{"nome":"SABRINA DOS SANTOS LUCIANO","val":345.62,"h":11.22,"mot":false},{"nome":"DAYANE ROSANE DOS SANTOS","val":320.34,"h":17.03,"mot":false},{"nome":"CAIO LUCIANO MATIAS","val":313.94,"h":12.46,"mot":false},{"nome":"URIEL CORREA DOS SANTOS","val":292.12,"h":0.0,"mot":false}]},"CONTROLADORIA":{"tv":1160.33,"th":46.28,"cl":[{"nome":"JOAO PEDRO BARROS MARQUES","val":719.26,"h":28.25,"mot":false},{"nome":"JANAINA MARTINS DE SOUZA","val":343.0,"h":16.49,"mot":false},{"nome":"GABRIEL HENRIQUE MARTINS SANTOS","val":60.41,"h":0.0,"mot":false},{"nome":"LEONARDO BELMONTE CLERICI","val":37.66,"h":1.54,"mot":false}]},"ESTOQUE":{"tv":1214.62,"th":41.82,"cl":[{"nome":"MARCUS GEORGE CARVALHO DO NASCIMENTO","val":774.52,"h":23.21,"mot":false},{"nome":"JOAO ARAUJO COSTA","val":336.19,"h":15.24,"mot":false},{"nome":"OTACILIO BENEDITO DA SILVA","val":103.91,"h":3.37,"mot":false}]},"EXPEDICAO":{"tv":6861.67,"th":307.4,"cl":[{"nome":"JOÃO PAULO DE SOUSA","val":1404.28,"h":95.1,"mot":false},{"nome":"ABNER FERNANDO DOS SANTOS","val":1213.98,"h":65.59,"mot":false},{"nome":"JOAO GABRIEL DE OLIVEIRA SOARES","val":1186.8,"h":48.35,"mot":false},{"nome":"JOSE AGUINALDO SANTOS DE SOUZA","val":821.72,"h":36.05,"mot":false},{"nome":"LUIZ FERNANDO JACINTO","val":594.71,"h":0.0,"mot":false},{"nome":"GUILHERME PEREIRA DE JESUS","val":530.34,"h":0.0,"mot":false},{"nome":"JOSE FRANCISCO DOS SANTOS","val":517.68,"h":27.49,"mot":false},{"nome":"DAVID EDISON SILVA DE MORAES","val":428.79,"h":23.41,"mot":false},{"nome":"LUCAS RIBEIRO DA SILVA LIMA","val":163.37,"h":11.41,"mot":false}]},"FINANCEIRO":{"tv":2447.13,"th":86.19,"cl":[{"nome":"BRUNA DOS SANTOS BRAGA","val":1221.11,"h":33.0,"mot":false},{"nome":"ANTONIA GESSICA ALVES DA SILVA","val":803.34,"h":37.07,"mot":false},{"nome":"ANA ELIZA MARIANO DO NASCIMENTO","val":177.36,"h":5.36,"mot":false},{"nome":"MARIA EDUARDA DIAS DOS SANTOS","val":106.69,"h":3.09,"mot":false},{"nome":"LETICIA KRUMMENAUER","val":73.72,"h":4.27,"mot":false},{"nome":"LARA AFONSO MACHADO","val":64.91,"h":3.4,"mot":false}]},"GERENCIAMENTO DE RISCO":{"tv":3212.3,"th":138.4,"cl":[{"nome":"THAIS DE CASSIA PACHECO","val":982.82,"h":44.23,"mot":false},{"nome":"RIENE MARTINS DOS SANTOS","val":944.39,"h":53.4,"mot":false},{"nome":"LEANDRO OSMAR BERNDT","val":850.51,"h":20.22,"mot":false},{"nome":"MATHEUS ANTONIO FERRAZ DOS SANTOS","val":434.58,"h":20.55,"mot":false}]},"MARKETING":{"tv":163.79,"th":7.59,"cl":[{"nome":"ISADORA MACHADO","val":163.79,"h":7.59,"mot":false}]},"OPERACAO":{"tv":30391.29,"th":1094.94,"cl":[{"nome":"ROBSON VICENTE","val":4654.23,"h":93.54,"mot":true},{"nome":"JAIR BATISTA","val":2234.43,"h":69.47,"mot":true},{"nome":"MIRIAM PASSAIA DE OLIVEIRA","val":1777.85,"h":59.32,"mot":false},{"nome":"LUIZA RODRIGUES ALBINO","val":1752.87,"h":65.0,"mot":false},{"nome":"JOSENIR DE SOUZA CUNHA","val":1548.26,"h":58.19,"mot":true},{"nome":"DIEGO STANO","val":1470.94,"h":59.31,"mot":true},{"nome":"RAFAELLA STEPHANY COUTINHO DA SILVA","val":1430.07,"h":68.03,"mot":false},{"nome":"RAFAEL VICENTE","val":1381.63,"h":45.25,"mot":true},{"nome":"HELITON JUNIOR DIAS DE SOUZA","val":1352.71,"h":51.55,"mot":true},{"nome":"ITAUAN GONZAGA DA SILVA","val":1319.17,"h":45.08,"mot":true},{"nome":"FRANCILEUDO RODRIGUES DO BONFIM","val":1225.27,"h":49.43,"mot":true},{"nome":"GILBERTO DE OLIVEIRA","val":1122.89,"h":51.54,"mot":true},{"nome":"CELIO ROBERTO FERNANDES RIBEIRO FILHO","val":1101.23,"h":40.29,"mot":false},{"nome":"VALMI AMILTON MATIAS","val":1075.74,"h":29.59,"mot":false},{"nome":"DULCINELSON PEREIRA DOS SANTOS","val":1038.6,"h":47.18,"mot":true},{"nome":"SILVIO DA COSTA SOLANO","val":1023.33,"h":43.1,"mot":true},{"nome":"RAFAEL DE FREITAS","val":1011.04,"h":59.17,"mot":true},{"nome":"JAZIEL PEREIRA DO NASCIMENTO","val":954.3,"h":34.55,"mot":true},{"nome":"ELIAS SANTOS MORAES","val":703.07,"h":38.05,"mot":true},{"nome":"RONI FILIPE VICENTE","val":694.6,"h":17.01,"mot":true},{"nome":"JOAO CARLOS FERREIRA DE FARIAS","val":564.95,"h":29.59,"mot":true},{"nome":"FRANCISCO CLAUDICSON NASCIMENTO DE MOURA","val":496.4,"h":24.04,"mot":false},{"nome":"JACKSON CHRISTIAN ALVES DA SILVA","val":294.58,"h":9.12,"mot":true},{"nome":"ANTONIO CARLOS DA SILVA","val":150.7,"h":5.11,"mot":true},{"nome":"MARIA JULIA NICOLAO","val":12.43,"h":2.43,"mot":false}]},"RASTREAMENTO":{"tv":2212.01,"th":102.86,"cl":[{"nome":"SAYANG LUISA GUILLAMELAU ARAÚJO VIBOLT","val":665.6,"h":40.47,"mot":false},{"nome":"VITORIA BENITER MEIRA","val":584.51,"h":28.55,"mot":false},{"nome":"THAYANNE DE SOUZA COUTO","val":523.5,"h":21.37,"mot":false},{"nome":"ARLON BELARMINDO MARTINA","val":438.4,"h":12.47,"mot":false}]},"RECEPCAO":{"tv":196.57,"th":11.37,"cl":[{"nome":"VICTORIA GABRIELLE SILVA SANTOS","val":196.57,"h":11.37,"mot":false}]},"RECURSOS HUMANOS":{"tv":416.34,"th":15.52,"cl":[{"nome":"DIULIA DA SILVA HOLDERBAUM ","val":330.34,"h":11.25,"mot":false},{"nome":"ISABELY ALVES MATHEUS NASCIMENTO","val":86.0,"h":4.27,"mot":false}]},"SERVIÇOS GERAIS":{"tv":530.22,"th":19.33,"cl":[{"nome":"ANA CLAUDIA PEREIRA PAULA RODRIGUES","val":530.22,"h":19.33,"mot":false}]}},"he_sp_det":{"EXPEDICAO":{"tv":6532.31,"th":466.85,"cl":[{"nome":"LUCAS DUARTE SANTANA","val":978.5,"h":71.29,"mot":false},{"nome":"JOSE AUGUSTO DA SILVA","val":910.06,"h":66.29,"mot":false},{"nome":"LUCAS FRANCO DOS SANTOS","val":874.92,"h":63.55,"mot":false},{"nome":"JOSIMAR RAMOS SOUSA","val":790.28,"h":57.44,"mot":false},{"nome":"TIAGO NOGUEIRA DA SILVA","val":710.21,"h":51.53,"mot":false},{"nome":"MATHEUS RAMOS DE ALMEIDA","val":704.5,"h":51.28,"mot":false},{"nome":"DAVID SANTOS ANDRADE","val":687.16,"h":50.12,"mot":false},{"nome":"MICHEL DA SILVA MARTINS","val":287.0,"h":20.58,"mot":false},{"nome":"GUSTAVO RAMOS DE OLIVEIRA","val":158.73,"h":8.16,"mot":false},{"nome":"DIEGO PIRONE DE MELO","val":108.16,"h":5.38,"mot":false},{"nome":"VANDERLEI ALVES SILVA","val":91.71,"h":8.23,"mot":false},{"nome":"DAVID DOS SANTOS ROSA","val":80.64,"h":4.12,"mot":false},{"nome":"MATHEUS SANTOS DA SILVA","val":77.8,"h":5.41,"mot":false},{"nome":"FELIPE MOURA RICCI","val":72.64,"h":3.47,"mot":false}]},"OPERACAO":{"tv":8180.51,"th":413.6,"cl":[{"nome":"VANDO COELHO DE SOUSA","val":1156.21,"h":60.13,"mot":true},{"nome":"FLAVIO DE SOUZA MORAES","val":1113.96,"h":58.01,"mot":true},{"nome":"CARLOS EDUARDO SILVA","val":1089.96,"h":56.46,"mot":true},{"nome":"WILLIAM DOS SANTOS RODRIGUES","val":1013.8,"h":52.48,"mot":true},{"nome":"IGOR WESLLEY DA SILVA CAMPOS","val":917.8,"h":54.21,"mot":false},{"nome":"ITAMAR DE OLIVEIRA DA SILVA","val":812.83,"h":42.2,"mot":true},{"nome":"WILLIAN PLACIDO GONCALVES","val":788.83,"h":41.05,"mot":true},{"nome":"JOSE MARIO PIMENTA LOBATO","val":511.38,"h":8.04,"mot":false},{"nome":"HAUAN ARAUJO ROCHA DA SILVA","val":441.74,"h":17.18,"mot":false},{"nome":"BRUNA GOMES MORORO","val":155.14,"h":11.2,"mot":false},{"nome":"ISABELLA DA SILVA RODRIGUES","val":120.46,"h":8.48,"mot":false},{"nome":"MARCELY RODRIGUES DE ALMEIDA","val":58.4,"h":4.16,"mot":false}]},"SERVIÇOS GERAIS":{"tv":53.31,"th":3.08,"cl":[{"nome":"RAFAELA CRISTINA DA SILVA","val":53.31,"h":3.08,"mot":false}]}},"hf_sc_det":{"ATENDIMENTO":{"th":18.77,"cl":[{"nome":"JULIA CAROLINE SILVA LIMA","h":8.41,"mot":false},{"nome":"GUSTAVO ARRUDA DA SILVEIRA","h":8.15,"mot":false},{"nome":"DOUGLAS KAHLER DA SILVA","h":2.1,"mot":false},{"nome":"MAYARA SOUZA DE OLIVEIRA","h":0.11,"mot":false}]},"COMERCIAL":{"th":3.78,"cl":[{"nome":"SABRINA DOS SANTOS LUCIANO","h":2.08,"mot":false},{"nome":"CAIO LUCIANO MATIAS","h":1.14,"mot":false},{"nome":"CHISLLIA STEFANY SANTOS DA SILVA","h":0.34,"mot":false},{"nome":"DAYANE ROSANE DOS SANTOS","h":0.22,"mot":false}]},"CONTROLADORIA":{"th":6.21,"cl":[{"nome":"LEONARDO BELMONTE CLERICI","h":6.09,"mot":false},{"nome":"JOAO PEDRO BARROS MARQUES","h":0.12,"mot":false}]},"ESTOQUE":{"th":1.54,"cl":[{"nome":"OTACILIO BENEDITO DA SILVA","h":1.46,"mot":false},{"nome":"MARCUS GEORGE CARVALHO DO NASCIMENTO","h":0.08,"mot":false}]},"EXPEDICAO":{"th":19.71,"cl":[{"nome":"ABNER FERNANDO DOS SANTOS","h":8.48,"mot":false},{"nome":"JOAO GABRIEL DE OLIVEIRA SOARES","h":4.44,"mot":false},{"nome":"LUCAS RIBEIRO DA SILVA LIMA","h":4.42,"mot":false},{"nome":"JOÃO PAULO DE SOUSA","h":2.03,"mot":false},{"nome":"LUIZ FERNANDO JACINTO","h":0.34,"mot":false}]},"FINANCEIRO":{"th":3.68,"cl":[{"nome":"LETICIA KRUMMENAUER","h":3.26,"mot":false},{"nome":"ANA ELIZA MARIANO DO NASCIMENTO","h":0.42,"mot":false}]},"GERENCIAMENTO DE RISCO":{"th":13.75,"cl":[{"nome":"THAIS DE CASSIA PACHECO","h":8.38,"mot":false},{"nome":"LEANDRO OSMAR BERNDT","h":5.37,"mot":false}]},"MARKETING":{"th":1.21,"cl":[{"nome":"ISADORA MACHADO","h":1.21,"mot":false}]},"OPERACAO":{"th":17.47,"cl":[{"nome":"MIRIAM PASSAIA DE OLIVEIRA","h":9.57,"mot":false},{"nome":"CELIO ROBERTO FERNANDES RIBEIRO FILHO","h":5.01,"mot":false},{"nome":"LUIZA RODRIGUES ALBINO","h":2.02,"mot":false},{"nome":"VALMI AMILTON MATIAS","h":0.52,"mot":false},{"nome":"RAFAELLA STEPHANY COUTINHO DA SILVA","h":0.35,"mot":false}]},"RASTREAMENTO":{"th":16.04,"cl":[{"nome":"VITORIA BENITER MEIRA","h":10.37,"mot":false},{"nome":"ARLON BELARMINDO MARTINA","h":4.08,"mot":false},{"nome":"THAYANNE DE SOUZA COUTO","h":1.18,"mot":false},{"nome":"SAYANG LUISA GUILLAMELAU ARAÚJO VIBOLT","h":0.41,"mot":false}]},"RECEPCAO":{"th":1.19,"cl":[{"nome":"VICTORIA GABRIELLE SILVA SANTOS","h":1.19,"mot":false}]}},"hf_sp_det":{"ATENDIMENTO":{"th":0.06,"cl":[{"nome":"ADRIANA VIEIRA","h":0.06,"mot":false}]},"EXPEDICAO":{"th":52.16,"cl":[{"nome":"JOSE CARLOS ALVES DA SILVA","h":11.47,"mot":false},{"nome":"THIAGO DA SILVA COSTA","h":9.52,"mot":false},{"nome":"LEONARDO DE FREITAS MENDES","h":8.11,"mot":false},{"nome":"DIEGO PIRONE DE MELO","h":6.34,"mot":false},{"nome":"LUCAS SILVA QUEIROZ","h":5.51,"mot":false},{"nome":"MATHEUS RAMOS DE ALMEIDA","h":3.28,"mot":false},{"nome":"MICHEL DA SILVA MARTINS","h":2.27,"mot":false},{"nome":"MATHEUS SANTOS DA SILVA","h":1.52,"mot":false},{"nome":"VANDERLEI ALVES SILVA","h":1.41,"mot":false},{"nome":"FELIPE MOURA RICCI","h":1.09,"mot":false},{"nome":"GUSTAVO RAMOS DE OLIVEIRA","h":1.0,"mot":false},{"nome":"HENRIQUE RAMOS DE ALMEIDA","h":0.29,"mot":false},{"nome":"FLORIANO SANTOS DE JESUS","h":0.2,"mot":false},{"nome":"TIAGO NOGUEIRA DA SILVA","h":0.15,"mot":false}]},"OPERACAO":{"th":49.55,"cl":[{"nome":"JOSE MARIO PIMENTA LOBATO","h":18.34,"mot":false},{"nome":"HAUAN ARAUJO ROCHA DA SILVA","h":12.16,"mot":false},{"nome":"JULIA SIMOES SOUSA","h":8.1,"mot":false},{"nome":"ITAMAR DE OLIVEIRA DA SILVA","h":6.18,"mot":true},{"nome":"BRUNA GOMES MORORO","h":2.23,"mot":false},{"nome":"CARLOS EDUARDO SILVA","h":1.5,"mot":true},{"nome":"MARCELY RODRIGUES DE ALMEIDA","h":0.49,"mot":false},{"nome":"WILLIAN PLACIDO GONCALVES","h":0.46,"mot":true},{"nome":"ISABELLA DA SILVA RODRIGUES","h":0.09,"mot":false}]},"SERVIÇOS GERAIS":{"th":6.0,"cl":[{"nome":"RAFAELA CRISTINA DA SILVA","h":6.0,"mot":false}]}},"tenure":[{"f":"Menos de 3","q":49,"p":"60.5%"},{"f":"3 a 5","q":13,"p":"16.0%"},{"f":"6 a 8","q":4,"p":"4.9%"},{"f":"9 a 11","q":4,"p":"4.9%"},{"f":"12 a 15","q":10,"p":"12.3%"},{"f":"15+","q":1,"p":"1.2%"},{"f":"Menos de 3","q":25,"p":"62.5%"},{"f":"3 a 5","q":15,"p":"37.5%"}],"tenure_sc":[{"f":"Menos de 3","q":49,"p":"60.5%"},{"f":"3 a 5","q":13,"p":"16.0%"},{"f":"6 a 8","q":4,"p":"4.9%"},{"f":"9 a 11","q":4,"p":"4.9%"},{"f":"12 a 15","q":10,"p":"12.3%"},{"f":"15+","q":1,"p":"1.2%"}],"tenure_sp":[{"f":"Menos de 3","q":25,"p":"62.5%"},{"f":"3 a 5","q":15,"p":"37.5%"}]},"jul":{"period":"01/07/2026 — 31/07/2026","kpi":{"total":123,"sc":83,"sp":40,"admSc":8,"admSp":0,"demSc":6,"demSp":0,"prom":3,"exp":9},"turnover":{"sc":"8,33%","sp":"0,00%","scWarn":true},"desligamentos":[{"nome":"ANDERSON DA ROSA FERNANDES","un":"SC","motivo":"MOTIVOS PESSOAIS","tipo":"COLABORADOR"},{"nome":"DAYANE ROSANE DOS SANTOS","un":"SC","motivo":"PERFORMANCE","tipo":"EXPERIÊNCIA"},{"nome":"FRANCILEUDO RODRIGUES DO BONFIM","un":"SC","motivo":"PROPOSTA EXTERNA","tipo":"COLABORADOR"},{"nome":"JOÃO CARLOS FERREIRA DE FARIAS","un":"SC","motivo":"PROPOSTA EXTERNA","tipo":"COLABORADOR"},{"nome":"SANTIAGO RECIO MONTEJO","un":"SC","motivo":"DESISTENCIA","tipo":"COLABORADOR"},{"nome":"VICTORIA GABRIELLE SILVA SANTOS","un":"SC","motivo":"PERFORMANCE","tipo":"EMPRESA"}],"experiencia":[{"nome":"BRUNO RODRIGUES DA COSTA","un":"SC"},{"nome":"DAVID EDISON SILVA DE MORAES","un":"SC"},{"nome":"GABRIEL MACHADO MAFRA","un":"SC"},{"nome":"HENRIQUE RAMOS DE ALMEIDA","un":"SP"},{"nome":"LETICIA VIEIRA AMADEU","un":"SC"},{"nome":"LUISA NATALINE DE OLIVEIRA RODRIGUES","un":"SC"},{"nome":"MARIA ALICE DOS SANTOS PEREIRA","un":"SC"},{"nome":"STEFFANY RADASSA FARIAS NELIS","un":"SC"},{"nome":"THIERRY HENRY LIMA DA LUZ","un":"SC"}],"prom":{"num":3,"name":"CHISLLIA STEFANY SANTOS DA SILVA ","nomes":["CHISLLIA STEFANY SANTOS DA SILVA ","MATHEUS ANTONIO FERRAZ DOS SANTOS","URIEL CORREA DOS SANTOS"],"acum":18},"absent":{"sc":6,"sp":40,"acum":299},"gen_sc":{"M":49,"F":24,"total":83},"gen_sp":{"M":32,"F":7,"total":40},"nat_sc":{"SUL":49,"NORDESTE":16,"SUDESTE":8,"NORTE":6,"C.OESTE":4},"nat_sp":{"SUL":1,"NORDESTE":10,"SUDESTE":29,"NORTE":0,"C.OESTE":0},"cargo_sc":[["ANALISTA",23],["MOTORISTA",16],["LIDER",11],["CONFERENTE",8],["AUXILIAR",6],["COORDENADOR",5],["DIRETOR",4],["AJD. CARGA",3],["EXEC.VENDAS",2],["ESTAGIO",2],["SERV.GERAIS",1],["RECEPCIONISTA",1],["ANALISTA ",1]],"cargo_sp":[["AJD. CARGA",15],["MOTORISTA",6],["AUXILIAR",5],["CONFERENTE",5],["ANALISTA",2],["DIRETOR",1],["ENCARREGADO",1],["CONSULTOR",1],["COORDENADOR",1],["SERV.GERAIS",1]],"he_sc_evol":[32471.81,28966.41,32653.06,33042.18,37091.88,54751.9,32208.73],"he_sp_evol":[15742.13,22446.39,17873.35,15477.25,18253.47,14766.13,12074.35],"hf_sc_evol":[116.71,249.91,339.96,285.36,103.69,103.35,78.93],"hf_sp_evol":[118.05,109.37,209.43,77.97,70.37,107.77,62.18],"he_sc_acum":"R$ 251.185,97","he_sp_acum":"R$ 116.633,07","hf_sc_acum":"1.277,91h","hf_sp_acum":"755,14h","he_sc_det":{"ATENDIMENTO":{"tv":1581.97,"th":65.06,"cl":[{"nome":"EDUARDA DIAS DE OLIVEIRA","val":538.17,"h":23.38,"mot":false},{"nome":"GUSTAVO ARRUDA DA SILVEIRA","val":297.67,"h":12.36,"mot":false},{"nome":"JULIA CAROLINE SILVA LIMA","val":285.8,"h":9.24,"mot":false},{"nome":"DOUGLAS KAHLER DA SILVA","val":243.29,"h":8.47,"mot":false},{"nome":"MAYARA SOUZA DE OLIVEIRA","val":90.76,"h":5.3,"mot":false},{"nome":"LETICIA VITORIA RIBEIRO DA SILVA","val":76.06,"h":3.11,"mot":false},{"nome":"LUCAS RAFAEL DA SILVA","val":50.22,"h":3.2,"mot":false}]},"COMERCIAL":{"tv":613.9,"th":27.76,"cl":[{"nome":"CHISLLIA STEFANY SANTOS DA SILVA","val":389.03,"h":17.29,"mot":false},{"nome":"CAIO LUCIANO MATIAS","val":103.45,"h":5.01,"mot":false},{"nome":"SABRINA DOS SANTOS LUCIANO","val":86.73,"h":3.35,"mot":false},{"nome":"DAYANE ROSANE DOS SANTOS","val":34.69,"h":2.11,"mot":false}]},"CONTROLADORIA":{"tv":867.43,"th":39.98,"cl":[{"nome":"JOAO PEDRO BARROS MARQUES","val":358.1,"h":14.43,"mot":false},{"nome":"LEONARDO BELMONTE CLERICI","val":294.46,"h":12.04,"mot":false},{"nome":"JANAINA MARTINS DE SOUZA","val":106.34,"h":5.57,"mot":false},{"nome":"GABRIEL HENRIQUE MARTINS SANTOS","val":61.76,"h":5.49,"mot":false},{"nome":"GABRIEL MACHADO MAFRA","val":46.77,"h":2.45,"mot":false}]},"ESTOQUE":{"tv":342.52,"th":14.16,"cl":[{"nome":"MARCUS GEORGE CARVALHO DO NASCIMENTO","val":193.46,"h":6.55,"mot":false},{"nome":"JOAO ARAUJO COSTA","val":138.58,"h":7.27,"mot":false},{"nome":"OTACILIO BENEDITO DA SILVA","val":10.48,"h":0.34,"mot":false}]},"EXPEDICAO":{"tv":5243.36,"th":269.75,"cl":[{"nome":"ABNER FERNANDO DOS SANTOS","val":1125.42,"h":65.19,"mot":false},{"nome":"JOÃO PAULO DE SOUSA","val":1006.14,"h":70.27,"mot":false},{"nome":"JOAO GABRIEL DE OLIVEIRA SOARES","val":925.88,"h":41.15,"mot":false},{"nome":"JOSE FRANCISCO DOS SANTOS","val":432.28,"h":25.04,"mot":false},{"nome":"DAVID EDISON SILVA DE MORAES","val":400.09,"h":24.45,"mot":false},{"nome":"JOSE AGUINALDO SANTOS DE SOUZA","val":343.91,"h":16.06,"mot":false},{"nome":"LUCAS RIBEIRO DA SILVA LIMA","val":307.55,"h":21.48,"mot":false},{"nome":"LUIZ FERNANDO JACINTO","val":305.27,"h":0.0,"mot":false},{"nome":"GUILHERME PEREIRA DE JESUS","val":296.84,"h":0.0,"mot":false},{"nome":"THIERRY HENRY LIMA DA LUZ","val":99.98,"h":6.11,"mot":false}]},"FINANCEIRO":{"tv":1332.4,"th":51.44,"cl":[{"nome":"BRUNA DOS SANTOS BRAGA","val":763.4,"h":22.11,"mot":false},{"nome":"ANTONIA GESSICA ALVES DA SILVA","val":366.74,"h":19.21,"mot":false},{"nome":"LARA AFONSO MACHADO","val":181.17,"h":9.49,"mot":false},{"nome":"ANA ELIZA MARIANO DO NASCIMENTO","val":15.22,"h":0.46,"mot":false},{"nome":"MARIA EDUARDA DIAS DOS SANTOS","val":5.87,"h":0.17,"mot":false}]},"GERENCIAMENTO DE RISCO":{"tv":2763.37,"th":117.45,"cl":[{"nome":"THAIS DE CASSIA PACHECO","val":914.55,"h":44.29,"mot":false},{"nome":"LEANDRO OSMAR BERNDT","val":759.23,"h":18.05,"mot":false},{"nome":"RIENE MARTINS DOS SANTOS","val":752.15,"h":38.04,"mot":false},{"nome":"MATHEUS ANTONIO FERRAZ DOS SANTOS","val":337.44,"h":17.07,"mot":false}]},"MARKETING":{"tv":46.83,"th":2.17,"cl":[{"nome":"ISADORA MACHADO","val":46.83,"h":2.17,"mot":false}]},"OPERACAO":{"tv":17026.07,"th":671.83,"cl":[{"nome":"HELITON JUNIOR DIAS DE SOUZA","val":1255.61,"h":51.34,"mot":true},{"nome":"ITAUAN GONZAGA DA SILVA","val":1203.77,"h":42.12,"mot":true},{"nome":"JOSENIR DE SOUZA CUNHA","val":1116.41,"h":46.01,"mot":true},{"nome":"DIEGO STANO","val":1101.63,"h":38.01,"mot":true},{"nome":"JAIR BATISTA","val":1099.47,"h":39.19,"mot":true},{"nome":"DULCINELSON PEREIRA DOS SANTOS","val":1008.26,"h":48.42,"mot":true},{"nome":"RAFAEL DE FREITAS","val":998.91,"h":52.21,"mot":true},{"nome":"JAZIEL PEREIRA DO NASCIMENTO","val":975.88,"h":34.44,"mot":true},{"nome":"SILVIO DA COSTA SOLANO","val":869.5,"h":35.08,"mot":true},{"nome":"RAFAELLA STEPHANY COUTINHO DA SILVA","val":828.19,"h":41.12,"mot":false},{"nome":"ANTONIO CARLOS DA SILVA","val":809.85,"h":27.46,"mot":true},{"nome":"ROBSON VICENTE","val":773.08,"h":18.19,"mot":true},{"nome":"CELIO ROBERTO FERNANDES RIBEIRO FILHO","val":697.31,"h":26.2,"mot":false},{"nome":"LUIZA RODRIGUES ALBINO","val":685.71,"h":26.48,"mot":false},{"nome":"MIRIAM PASSAIA DE OLIVEIRA","val":638.02,"h":22.28,"mot":false},{"nome":"GILBERTO DE OLIVEIRA","val":631.89,"h":31.29,"mot":true},{"nome":"RAFAEL VICENTE","val":589.12,"h":21.0,"mot":true},{"nome":"RONI FILIPE VICENTE","val":446.23,"h":12.46,"mot":true},{"nome":"FRANCISCO CLAUDICSON NASCIMENTO DE MOURA","val":342.36,"h":16.58,"mot":false},{"nome":"FRANCILEUDO RODRIGUES DO BONFIM","val":308.86,"h":12.46,"mot":true},{"nome":"VALMI AMILTON MATIAS","val":300.85,"h":9.12,"mot":false},{"nome":"JOAO CARLOS FERREIRA DE FARIAS","val":177.4,"h":10.29,"mot":true},{"nome":"LETICIA VIEIRA AMADEU","val":115.14,"h":4.33,"mot":false},{"nome":"JACKSON CHRISTIAN ALVES DA SILVA","val":29.35,"h":1.2,"mot":true},{"nome":"MARIA JULIA NICOLAO","val":23.27,"h":4.55,"mot":false}]},"RASTREAMENTO":{"tv":1380.01,"th":79.42,"cl":[{"nome":"ARLON BELARMINDO MARTINA","val":733.13,"h":25.48,"mot":false},{"nome":"SAYANG LUISA GUILLAMELAU ARAÚJO VIBOLT","val":360.1,"h":25.15,"mot":false},{"nome":"THAYANNE DE SOUZA COUTO","val":210.72,"h":9.45,"mot":false},{"nome":"VITORIA BENITER MEIRA","val":76.06,"h":19.34,"mot":false}]},"RECEPCAO":{"tv":182.05,"th":13.35,"cl":[{"nome":"MARIA ALICE DOS SANTOS PEREIRA","val":182.05,"h":13.35,"mot":false}]},"RECURSOS HUMANOS":{"tv":166.93,"th":6.8,"cl":[{"nome":"DIULIA DA SILVA HOLDERBAUM ","val":95.43,"h":3.25,"mot":false},{"nome":"ISABELY ALVES MATHEUS NASCIMENTO","val":71.5,"h":3.55,"mot":false}]},"SERVIÇOS GERAIS":{"tv":661.89,"th":24.13,"cl":[{"nome":"ANA CLAUDIA PEREIRA PAULA RODRIGUES","val":661.89,"h":24.13,"mot":false}]}},"he_sp_det":{"EXPEDICAO":{"tv":6160.73,"th":397.42,"cl":[{"nome":"LUCAS DUARTE SANTANA","val":882.26,"h":61.23,"mot":false},{"nome":"JOSE AUGUSTO DA SILVA","val":770.63,"h":53.57,"mot":false},{"nome":"DIEGO PIRONE DE MELO","val":642.46,"h":30.29,"mot":false},{"nome":"TIAGO NOGUEIRA DA SILVA","val":617.08,"h":42.56,"mot":false},{"nome":"LUCAS FRANCO DOS SANTOS","val":550.0,"h":38.16,"mot":false},{"nome":"MATHEUS RAMOS DE ALMEIDA","val":514.31,"h":35.47,"mot":false},{"nome":"FLORIANO SANTOS DE JESUS","val":379.68,"h":26.25,"mot":false},{"nome":"DAVID DOS SANTOS ROSA","val":321.9,"h":15.58,"mot":false},{"nome":"GUSTAVO RAMOS DE OLIVEIRA","val":320.89,"h":15.55,"mot":false},{"nome":"MICHEL DA SILVA MARTINS","val":289.38,"h":20.08,"mot":false},{"nome":"MATHEUS SANTOS DA SILVA","val":262.79,"h":18.17,"mot":false},{"nome":"HENRIQUE RAMOS DE ALMEIDA","val":182.54,"h":12.42,"mot":false},{"nome":"DAVID SANTOS ANDRADE","val":179.18,"h":12.28,"mot":false},{"nome":"JOSIMAR RAMOS SOUSA","val":116.42,"h":8.06,"mot":false},{"nome":"VANDERLEI ALVES SILVA","val":77.13,"h":5.22,"mot":false},{"nome":"FELIPE MOURA RICCI","val":44.02,"h":2.11,"mot":false},{"nome":"LUCAS SILVA QUEIROZ","val":10.06,"h":0.42,"mot":false}]},"OPERACAO":{"tv":5894.27,"th":289.48,"cl":[{"nome":"CARLOS EDUARDO SILVA","val":1112.21,"h":55.1,"mot":true},{"nome":"WILLIAN PLACIDO GONCALVES","val":945.21,"h":46.53,"mot":true},{"nome":"VANDO COELHO DE SOUSA","val":916.31,"h":45.27,"mot":true},{"nome":"HAUAN ARAUJO ROCHA DA SILVA","val":853.48,"h":31.5,"mot":false},{"nome":"WILLIAM DOS SANTOS RODRIGUES","val":852.47,"h":42.17,"mot":true},{"nome":"ITAMAR DE OLIVEIRA DA SILVA","val":457.65,"h":22.42,"mot":true},{"nome":"IGOR WESLLEY DA SILVA CAMPOS","val":320.34,"h":18.04,"mot":false},{"nome":"BRUNA GOMES MORORO","val":229.01,"h":15.56,"mot":false},{"nome":"ISABELLA DA SILVA RODRIGUES","val":106.84,"h":7.26,"mot":false},{"nome":"MARCELY RODRIGUES DE ALMEIDA","val":52.7,"h":3.4,"mot":false},{"nome":"FLAVIO DE SOUZA MORAES","val":48.05,"h":2.23,"mot":true}]},"SERVIÇOS GERAIS":{"tv":19.35,"th":1.05,"cl":[{"nome":"RAFAELA CRISTINA DA SILVA","val":19.35,"h":1.05,"mot":false}]}},"hf_sc_det":{"ATENDIMENTO":{"th":6.62,"cl":[{"nome":"GUSTAVO ARRUDA DA SILVEIRA","h":3.11,"mot":false},{"nome":"MAYARA SOUZA DE OLIVEIRA","h":1.52,"mot":false},{"nome":"JULIA CAROLINE SILVA LIMA","h":1.32,"mot":false},{"nome":"DOUGLAS KAHLER DA SILVA","h":0.5,"mot":false},{"nome":"LUCAS RAFAEL DA SILVA","h":0.17,"mot":false}]},"COMERCIAL":{"th":2.48,"cl":[{"nome":"CAIO LUCIANO MATIAS","h":1.28,"mot":false},{"nome":"SABRINA DOS SANTOS LUCIANO","h":1.2,"mot":false}]},"CONTROLADORIA":{"th":5.23,"cl":[{"nome":"GABRIEL MACHADO MAFRA","h":3.0,"mot":false},{"nome":"LEONARDO BELMONTE CLERICI","h":2.02,"mot":false},{"nome":"JOAO PEDRO BARROS MARQUES","h":0.21,"mot":false}]},"ESTOQUE":{"th":0.49,"cl":[{"nome":"OTACILIO BENEDITO DA SILVA","h":0.49,"mot":false}]},"EXPEDICAO":{"th":6.49,"cl":[{"nome":"JOÃO PAULO DE SOUSA","h":4.38,"mot":false},{"nome":"LUIZ FERNANDO JACINTO","h":2.11,"mot":false}]},"FINANCEIRO":{"th":0.16,"cl":[{"nome":"ANA ELIZA MARIANO DO NASCIMENTO","h":0.16,"mot":false}]},"GERENCIAMENTO DE RISCO":{"th":11.21,"cl":[{"nome":"LEANDRO OSMAR BERNDT","h":11.21,"mot":false}]},"MARKETING":{"th":1.22,"cl":[{"nome":"ISADORA MACHADO","h":1.22,"mot":false}]},"OPERACAO":{"th":31.47,"cl":[{"nome":"JOAO CARLOS FERREIRA DE FARIAS","h":17.36,"mot":true},{"nome":"CELIO ROBERTO FERNANDES RIBEIRO FILHO","h":8.06,"mot":false},{"nome":"RAFAELLA STEPHANY COUTINHO DA SILVA","h":4.48,"mot":false},{"nome":"LUIZA RODRIGUES ALBINO","h":1.31,"mot":false},{"nome":"VALMI AMILTON MATIAS","h":0.26,"mot":false}]},"RASTREAMENTO":{"th":10.16,"cl":[{"nome":"VITORIA BENITER MEIRA","h":5.54,"mot":false},{"nome":"SAYANG LUISA GUILLAMELAU ARAÚJO VIBOLT","h":3.52,"mot":false},{"nome":"ARLON BELARMINDO MARTINA","h":1.03,"mot":false},{"nome":"THAYANNE DE SOUZA COUTO","h":0.07,"mot":false}]},"RECEPCAO":{"th":3.4,"cl":[{"nome":"VICTORIA GABRIELLE SILVA SANTOS","h":3.4,"mot":false}]}},"hf_sp_det":{"EXPEDICAO":{"th":48.46,"cl":[{"nome":"THIAGO DA SILVA COSTA","h":14.11,"mot":false},{"nome":"JOSE CARLOS ALVES DA SILVA","h":10.15,"mot":false},{"nome":"FLORIANO SANTOS DE JESUS","h":8.48,"mot":false},{"nome":"DAVID SANTOS ANDRADE","h":5.52,"mot":false},{"nome":"MATHEUS SANTOS DA SILVA","h":2.39,"mot":false},{"nome":"MICHEL DA SILVA MARTINS","h":1.5,"mot":false},{"nome":"MATHEUS RAMOS DE ALMEIDA","h":1.38,"mot":false},{"nome":"HENRIQUE RAMOS DE ALMEIDA","h":1.38,"mot":false},{"nome":"LUCAS SILVA QUEIROZ","h":1.16,"mot":false},{"nome":"GUSTAVO RAMOS DE OLIVEIRA","h":0.53,"mot":false},{"nome":"LUCAS DUARTE SANTANA","h":0.5,"mot":false},{"nome":"DAVID DOS SANTOS ROSA","h":0.43,"mot":false},{"nome":"DIEGO PIRONE DE MELO","h":0.42,"mot":false},{"nome":"LEONARDO DE FREITAS MENDES","h":0.35,"mot":false},{"nome":"TIAGO NOGUEIRA DA SILVA","h":0.08,"mot":false},{"nome":"VANDERLEI ALVES SILVA","h":0.08,"mot":false}]},"OPERACAO":{"th":13.33,"cl":[{"nome":"JULIA SIMOES SOUSA","h":7.3,"mot":false},{"nome":"ITAMAR DE OLIVEIRA DA SILVA","h":4.32,"mot":true},{"nome":"CARLOS EDUARDO SILVA","h":1.15,"mot":true},{"nome":"MARCELY RODRIGUES DE ALMEIDA","h":0.27,"mot":false},{"nome":"IGOR WESLLEY DA SILVA CAMPOS","h":0.16,"mot":false},{"nome":"HAUAN ARAUJO ROCHA DA SILVA","h":0.13,"mot":false}]},"SERVIÇOS GERAIS":{"th":0.39,"cl":[{"nome":"RAFAELA CRISTINA DA SILVA","h":0.39,"mot":false}]}},"tenure_sc":[{"f":"Menos de 3","q":51,"p":"61.4%"},{"f":"3 a 5","q":13,"p":"15.7%"},{"f":"6 a 8","q":4,"p":"4.8%"},{"f":"9 a 11","q":4,"p":"4.8%"},{"f":"12 a 15","q":10,"p":"12.0%"},{"f":"15+","q":1,"p":"1.2%"}],"tenure_sp":[{"f":"Menos de 3","q":24,"p":"60.0%"},{"f":"3 a 5","q":16,"p":"40.0%"}]}};
+const MONTHS = ['JAN','FEV','MAR','ABR','MAI'];
+let CUR = 'abr';
+
+function br(v){return v.toLocaleString('pt-BR',{minimumFractionDigits:2})}
+function fmtR(v){return 'R$ '+br(v)}
+function fmtH(v){return br(v)+'h'}
+
+// ── DONUT ──────────────────────────────────────────────────────
+function donut(el, m, f, color1, color2){
+  const total=m+f, pm=Math.round(m/total*100);
+  const r=38, circ=2*Math.PI*r;
+  const dash=circ*(m/total);
+  el.innerHTML=`
+  <div class="donut">
+    <svg viewBox="0 0 100 100" width="90" height="90">
+      <circle cx="50" cy="50" r="${r}" fill="none" stroke="#E8EBF7" stroke-width="14"/>
+      <circle cx="50" cy="50" r="${r}" fill="none" stroke="${color1}" stroke-width="14"
+        stroke-dasharray="${dash} ${circ}" stroke-linecap="round"/>
+    </svg>
+    <div class="donut-center"><div class="donut-pct">${pm}%</div><div class="donut-sub">Masc.</div></div>
+  </div>
+  <div class="donut-legend">
+    <div class="legend-item"><div class="legend-dot" style="background:${color1}"></div>Masculino (${m})</div>
+    <div class="legend-item"><div class="legend-dot" style="background:${color2}"></div>Feminino (${f})</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#eee"></div>Total: ${total}</div>
+  </div>`;
+}
+
+// ── BAR CHART (horizontal) ─────────────────────────────────────
+function barChart(el, items, color, labelWidth){
+  const max=Math.max(...items.map(i=>i.v));
+  el.innerHTML=items.map(i=>`
+  <div class="bar-row">
+    <div class="bar-lbl${labelWidth?' wide':''}">${i.k}</div>
+    <div class="bar-track"><div class="bar-fill" style="background:${color};width:${Math.max(i.v/max*100,4).toFixed(1)}%"><span>${i.v}</span></div></div>
+  </div>`).join('');
+}
+
+// ── LINE/BAR EVOLUTION CHART (SVG) ────────────────────────────
+function evolChart(el, values, color, mes){
+  const W=400,H=90,pad=30,bW=38,gap=10;
+  const maxV=Math.max(...values)*1.15||1;
+  const labels=['Jan','Fev','Mar','Abr','Mai','Jun','Jul'];
+  const activeIdx=mes==='abr'?3:mes==='mai'?4:mes==='jun'?5:6;
+  let bars='',texts='',xLabels='';
+  const totalW=W-pad*2; const slotW=totalW/5;
+  values.forEach((v,i)=>{
+    const bH=Math.max((v/maxV)*(H-20),2);
+    const x=pad+i*slotW+(slotW-bW)/2;
+    const y=H-bH;
+    const isActive=i===activeIdx;
+    if(v>0)bars+=`<rect x="${x}" y="${y}" width="${bW}" height="${bH}" rx="3" fill="${isActive?color:'#C5CAE9'}"/>`;
+    texts+=`<text x="${x+bW/2}" y="${y-4}" text-anchor="middle" font-size="9" font-weight="${isActive?700:400}" fill="${isActive?color:'#546E7A'}">${fmtR(v).replace('R$ ','')}</text>`;
+    xLabels+=`<text x="${x+bW/2}" y="${H+14}" text-anchor="middle" font-size="9" fill="${isActive?color:'#546E7A'}" font-weight="${isActive?700:400}">${labels[i]}</text>`;
+  });
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H+20}" class="chart-svg" style="height:${H+20}px">${bars}${texts}${xLabels}</svg>`;
+}
+
+// ── HF EVOLUTION CHART ────────────────────────────────────────
+function hfEvolChart(el, values, color, mes){
+  const W=400,H=80,pad=30,bW=38;
+  const maxV=Math.max(...values)*1.15||1;
+  const labels=['Jan','Fev','Mar','Abr','Mai','Jun','Jul'];
+  const activeIdx=mes==='abr'?3:mes==='mai'?4:mes==='jun'?5:6;
+  const totalW=W-pad*2; const slotW=totalW/5;
+  let bars='',texts='',xLabels='';
+  values.forEach((v,i)=>{
+    const bH=Math.max((v/maxV)*(H-20),2);
+    const x=pad+i*slotW+(slotW-bW)/2;
+    const y=H-bH;
+    const isActive=i===activeIdx;
+    if(v>0)bars+=`<rect x="${x}" y="${y}" width="${bW}" height="${bH}" rx="3" fill="${isActive?color:'#C5CAE9'}"/>`;
+    texts+=`<text x="${x+bW/2}" y="${y-4}" text-anchor="middle" font-size="8.5" font-weight="${isActive?700:400}" fill="${isActive?color:'#546E7A'}">${br(v)}h</text>`;
+    xLabels+=`<text x="${x+bW/2}" y="${H+14}" text-anchor="middle" font-size="9" fill="${isActive?color:'#546E7A'}" font-weight="${isActive?700:400}">${labels[i]}</text>`;
+  });
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H+20}" class="chart-svg" style="height:${H+20}px">${bars}${texts}${xLabels}</svg>`;
+}
+
+// ── DEPT TABLE (HE) ───────────────────────────────────────────
+function deptTableHE(el, depts, total, detData, unit){
+  let rows='';
+  Object.keys(detData).sort((a,b)=>{
+    const va=detData[a].tv, vb=detData[b].tv;
+    return vb-va;
+  }).forEach(dept=>{
+    const d=detData[dept];
+    const hasMot=d.cl.some(c=>c.mot);
+    const motCl=d.cl.filter(c=>c.mot);
+    const nonMotCl=d.cl.filter(c=>!c.mot);
+    const motVal=motCl.reduce((s,c)=>s+c.val,0);
+    const nonMotVal=nonMotCl.reduce((s,c)=>s+c.val,0);
+    const dname=dept.replace('GERENCIAMENTO DE RISCO','GER.RISCO').replace('RECURSOS HUMANOS','REC.HUMANOS').replace('SERVIÇOS GERAIS','SERV.GERAIS');
+    if(hasMot){
+      rows+=`<tr><td><button class="drill-btn" onclick="showDrillHE('${dept}','${unit}','op')">${dname}</button></td><td>${fmtR(d.tv)}</td></tr>`;
+      rows+=`<tr class="mot-row"><td style="padding-left:16px"><button class="drill-btn" onclick="showDrillHE('${dept}','${unit}','mot')">↳ Motoristas</button></td><td>${fmtR(motVal)}</td></tr>`;
+    } else {
+      rows+=`<tr><td><button class="drill-btn" onclick="showDrillHE('${dept}','${unit}','all')">${dname}</button></td><td>${fmtR(d.tv)}</td></tr>`;
+    }
+  });
+  rows+=`<tr class="tot"><td>TOTAL</td><td>${fmtR(total)}</td></tr>`;
+  el.innerHTML=`<thead><tr><th>Departamento</th><th>Valor (R$)</th></tr></thead><tbody>${rows}</tbody>`;
+}
+
+// ── DEPT TABLE (HF) ───────────────────────────────────────────
+function deptTableHF(el, detData, totalH, unit){
+  let rows='';
+  Object.keys(detData).sort((a,b)=>detData[b].th-detData[a].th).forEach(dept=>{
+    const d=detData[dept];
+    const hasMot=d.cl.some(c=>c.mot);
+    const motH=d.cl.filter(c=>c.mot).reduce((s,c)=>s+c.h,0);
+    const dname=dept.replace('GERENCIAMENTO DE RISCO','GER.RISCO').replace('RECURSOS HUMANOS','REC.HUMANOS').replace('SERVIÇOS GERAIS','SERV.GERAIS');
+    if(hasMot){
+      rows+=`<tr><td><button class="drill-btn" onclick="showDrillHF('${dept}','${unit}','op')">${dname}</button></td><td>${fmtH(d.th)}</td></tr>`;
+      rows+=`<tr class="mot-row"><td style="padding-left:16px"><button class="drill-btn" onclick="showDrillHF('${dept}','${unit}','mot')">↳ Motoristas</button></td><td>${fmtH(motH)}</td></tr>`;
+    } else {
+      rows+=`<tr><td><button class="drill-btn" onclick="showDrillHF('${dept}','${unit}','all')">${dname}</button></td><td>${fmtH(d.th)}</td></tr>`;
+    }
+  });
+  rows+=`<tr class="tot"><td>TOTAL</td><td>${fmtH(totalH)}</td></tr>`;
+  el.innerHTML=`<thead><tr><th>Departamento</th><th>Horas</th></tr></thead><tbody>${rows}</tbody>`;
+}
+
+// ── DRILL-DOWN HE ─────────────────────────────────────────────
+function showDrillHE(dept, unit, mode){
+  const d=RAW[CUR][`he_${unit.toLowerCase()}_det`][dept];
+  if(!d) return;
+  const cl = mode==='mot' ? d.cl.filter(c=>c.mot) :
+             mode==='op'  ? d.cl.filter(c=>!c.mot) : d.cl;
+  const tv=cl.reduce((s,c)=>s+c.val,0);
+  const th=cl.reduce((s,c)=>s+c.h,0);
+  const suffix = mode==='mot'?' — MOTORISTAS': mode==='op'?' — OPERAÇÃO':'';
+  document.getElementById('modal-title').textContent=`HE ${unit} — ${dept}${suffix}`;
+  document.getElementById('modal-sub').textContent=`${cl.length} colaboradores · Total: ${fmtR(tv)} / ${fmtH(th)}`;
+  let rows=cl.map(c=>`<tr><td>${c.nome}${c.mot?'<span class="mot-tag">MOT</span>':''}</td><td>${fmtR(c.val)}</td><td>${fmtH(c.h)}</td></tr>`).join('');
+  rows+=`<tr class="tot"><td>TOTAL</td><td>${fmtR(tv)}</td><td>${fmtH(th)}</td></tr>`;
+  document.getElementById('modal-table').innerHTML=`<thead><tr><th>Colaborador</th><th>Valor (R$)</th><th>Horas</th></tr></thead><tbody>${rows}</tbody>`;
+  document.getElementById('modal').classList.add('open');
+}
+
+// ── DRILL-DOWN HF ─────────────────────────────────────────────
+function showDrillHF(dept, unit, mode){
+  const d=RAW[CUR][`hf_${unit.toLowerCase()}_det`][dept];
+  if(!d) return;
+  const cl = mode==='mot' ? d.cl.filter(c=>c.mot) :
+             mode==='op'  ? d.cl.filter(c=>!c.mot) : d.cl;
+  const th=cl.reduce((s,c)=>s+c.h,0);
+  const suffix = mode==='mot'?' — MOTORISTAS': mode==='op'?' — OPERAÇÃO':'';
+  document.getElementById('modal-title').textContent=`HF ${unit} — ${dept}${suffix}`;
+  document.getElementById('modal-sub').textContent=`${cl.length} colaboradores · Total: ${fmtH(th)}`;
+  let rows=cl.map(c=>`<tr><td>${c.nome}${c.mot?'<span class="mot-tag">MOT</span>':''}</td><td>${fmtH(c.h)}</td></tr>`).join('');
+  rows+=`<tr class="tot"><td>TOTAL</td><td>${fmtH(th)}</td></tr>`;
+  document.getElementById('modal-table').innerHTML=`<thead><tr><th>Colaborador</th><th>Horas</th></tr></thead><tbody>${rows}</tbody>`;
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal(){ document.getElementById('modal').classList.remove('open'); }
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+
+// ── RENDER ────────────────────────────────────────────────────
+function render(m){
+  const d=RAW[m], s=d; // s has static fields merged in
+  
+  // Period & KPIs
+  document.getElementById('period-lbl').textContent=s.period;
+  document.getElementById('k-tot').textContent=s.kpi.total;
+  document.getElementById('k-sc').textContent=s.kpi.sc;
+  document.getElementById('k-sp').textContent=s.kpi.sp;
+  document.getElementById('k-asc').textContent=s.kpi.admSc;
+  document.getElementById('k-asp').textContent=s.kpi.admSp;
+  document.getElementById('k-dsc').textContent=s.kpi.demSc;
+  document.getElementById('k-dsp').textContent=s.kpi.demSp;
+  document.getElementById('k-prom').textContent=s.kpi.prom;
+  document.getElementById('k-exp').textContent=s.kpi.exp;
+
+  // Gênero donuts
+  donut(document.getElementById('donut-sc'),d.gen_sc.M,d.gen_sc.F,'#1B2784','#E95C2C');
+  donut(document.getElementById('donut-sp'),d.gen_sp.M,d.gen_sp.F,'#E95C2C','#1B2784');
+
+  // Naturalidade
+  const natSCitems=Object.entries(d.nat_sc).map(([k,v])=>({k,v})).filter(i=>i.v>0).sort((a,b)=>b.v-a.v);
+  const natSPitems=Object.entries(d.nat_sp).map(([k,v])=>({k,v})).filter(i=>i.v>0).sort((a,b)=>b.v-a.v);
+  barChart(document.getElementById('nat-sc-chart'),natSCitems,'#1B2784',false);
+  barChart(document.getElementById('nat-sp-chart'),natSPitems,'#E95C2C',false);
+
+  // Turnover
+  document.getElementById('tv-sc-val').textContent=s.turnover.sc;
+  document.getElementById('tv-sc-val').className='tv-val '+(s.turnover.scWarn?'warn':'ok');
+  document.getElementById('tv-sc-st').textContent=s.turnover.scWarn?'▲ Acima da meta':'✓ Dentro da meta';
+  document.getElementById('tv-sc-st').className='tv-st '+(s.turnover.scWarn?'warn':'ok');
+  document.getElementById('tv-sp-val').textContent=s.turnover.sp;
+
+  // Desligamentos
+  document.getElementById('desl-count').textContent='('+s.desligamentos.length+' registros)';
+  document.getElementById('desl-tbody').innerHTML=s.desligamentos.map(x=>`
+    <tr><td style="font-weight:600;font-size:11px">${x.nome}</td>
+    <td><span class="badge b-${x.un.toLowerCase()}">${x.un}</span></td>
+    <td style="font-size:10px">${x.motivo}</td>
+    <td><span class="badge ${x.tipo==='COLABORADOR'?'b-col':'b-exp'}">${x.tipo}</span></td></tr>
+  `).join('')||'<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:14px">Nenhum desligamento</td></tr>';
+
+  // Experiência
+  const expSC=s.experiencia.filter(e=>e.un==='SC').length;
+  const expSP=s.experiencia.filter(e=>e.un==='SP').length;
+  document.getElementById('exp-count').textContent=`(SC: ${expSC} | SP: ${expSP})`;
+  document.getElementById('exp-ul').innerHTML=s.experiencia.map(e=>`
+    <li class="exp-item"><span style="font-weight:500">${e.nome}</span><span class="badge b-${e.un.toLowerCase()}">${e.un}</span></li>
+  `).join('');
+
+  // Promoções
+  document.getElementById('prom-num').textContent=s.prom.num;
+  const promNames = s.prom.nomes||[s.prom.name];
+  document.getElementById('prom-name').innerHTML = promNames.map(n=>`<div style="font-size:11px;color:var(--muted);margin-top:3px">${n}</div>`).join('');
+  document.getElementById('prom-acum').textContent=s.prom.acum;
+
+  // Afastamentos
+  document.getElementById('ab-sc').textContent=s.absent.sc;
+  document.getElementById('ab-sp').textContent=s.absent.sp;
+  document.getElementById('ab-acum').textContent=s.absent.acum;
+
+  // Cargo SC/SP
+  const csc=d.cargo_sc.filter(x=>x[0]&&!x[0].includes(' ')&&x[0].length>1).slice(0,12);
+  const csp=d.cargo_sp.filter(x=>x[0]&&!x[0].includes('  ')).slice(0,10);
+  barChart(document.getElementById('cargo-sc-chart'),csc.map(x=>({k:x[0],v:x[1]})),'#1B2784',false);
+  barChart(document.getElementById('cargo-sp-chart'),csp.map(x=>({k:x[0],v:x[1]})),'#E95C2C',false);
+
+  // HE Evolução
+  const mesIdx=m==='abr'?3:m==='mai'?4:m==='jun'?5:6;
+  document.getElementById('he-sc-val').textContent=fmtR(d.he_sc_evol[mesIdx]);
+  document.getElementById('he-sp-val').textContent=fmtR(d.he_sp_evol[mesIdx]);
+  document.getElementById('he-sc-acum').textContent=s.he_sc_acum;
+  document.getElementById('he-sp-acum').textContent=s.he_sp_acum;
+  evolChart(document.getElementById('he-sc-evolchart'),d.he_sc_evol,'#1B2784',m);
+  evolChart(document.getElementById('he-sp-evolchart'),d.he_sp_evol,'#E95C2C',m);
+
+  // HE Dept tables (with totals)
+  const heSCTotal=d.he_sc_evol[mesIdx];
+  const heSPTotal=d.he_sp_evol[mesIdx];
+  deptTableHE(document.getElementById('he-sc-dept-tbl'),null,heSCTotal,d.he_sc_det,'SC');
+  deptTableHE(document.getElementById('he-sp-dept-tbl'),null,heSPTotal,d.he_sp_det,'SP');
+
+  // HF Evolução
+  document.getElementById('hf-sc-val').textContent=fmtH(d.hf_sc_evol[mesIdx]);
+  document.getElementById('hf-sp-val').textContent=fmtH(d.hf_sp_evol[mesIdx]);
+  document.getElementById('hf-sc-acum').textContent=s.hf_sc_acum;
+  document.getElementById('hf-sp-acum').textContent=s.hf_sp_acum;
+  hfEvolChart(document.getElementById('hf-sc-evolchart'),d.hf_sc_evol,'#1B2784',m);
+  hfEvolChart(document.getElementById('hf-sp-evolchart'),d.hf_sp_evol,'#E95C2C',m);
+
+  // HF Dept tables
+  const hfSCTotal=d.hf_sc_evol[mesIdx];
+  const hfSPTotal=d.hf_sp_evol[mesIdx];
+  deptTableHF(document.getElementById('hf-sc-dept-tbl'),d.hf_sc_det,hfSCTotal,'SC');
+  deptTableHF(document.getElementById('hf-sp-dept-tbl'),d.hf_sp_det,hfSPTotal,'SP');
+
+  // Tenure SC + SP
+  const tenSC=d.tenure_sc||d.tenure,tenSP=d.tenure_sp||[];
+  const maxSC=Math.max(...tenSC.map(t=>t.q))||1,maxSP=tenSP.length?Math.max(...tenSP.map(t=>t.q))||1:1;
+  document.getElementById('tenure-chart').innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+    <div>
+      <div style="background:var(--blue);color:#fff;padding:5px 10px;border-radius:6px;font-size:10px;font-weight:700;margin-bottom:8px">SC — ${tenSC.reduce((s,t)=>s+t.q,0)} colaboradores</div>
+      ${tenSC.map(t=>`<div class="ten-row"><div class="ten-lbl">${t.f}</div><div class="ten-bar"><div class="ten-fill" style="width:${(t.q/maxSC*100).toFixed(1)}%"><span>${t.q}</span></div></div><div class="ten-pct">${t.p}</div></div>`).join('')}
+    </div>
+    <div>
+      <div style="background:var(--accent);color:#fff;padding:5px 10px;border-radius:6px;font-size:10px;font-weight:700;margin-bottom:8px">SP — ${tenSP.reduce((s,t)=>s+t.q,0)} colaboradores</div>
+      ${tenSP.map(t=>`<div class="ten-row"><div class="ten-lbl">${t.f}</div><div class="ten-bar"><div class="ten-fill" style="background:var(--accent);width:${(t.q/maxSP*100).toFixed(1)}%"><span>${t.q}</span></div></div><div class="ten-pct">${t.p}</div></div>`).join('')}
+    </div>
+  </div>`;
+  document.getElementById('tenure-tbody').innerHTML=
+    `<tr style="background:var(--bg2)"><td colspan="3" style="font-weight:700;color:var(--blue);font-size:10px;text-transform:uppercase;letter-spacing:.5px">SC</td></tr>`+
+    tenSC.map(t=>`<tr><td>${t.f}</td><td style="text-align:right;font-weight:700;color:var(--blue)">${t.q}</td><td style="text-align:right;color:var(--muted)">${t.p}</td></tr>`).join('')+
+    `<tr class="tot"><td>TOTAL SC</td><td style="text-align:right">${tenSC.reduce((s,t)=>s+t.q,0)}</td><td style="text-align:right">100%</td></tr>`+
+    `<tr style="background:var(--bg2)"><td colspan="3" style="font-weight:700;color:var(--accent);font-size:10px;text-transform:uppercase;letter-spacing:.5px">SP</td></tr>`+
+    tenSP.map(t=>`<tr><td>${t.f}</td><td style="text-align:right;font-weight:700;color:var(--accent)">${t.q}</td><td style="text-align:right;color:var(--muted)">${t.p}</td></tr>`).join('')+
+    `<tr class="tot"><td>TOTAL SP</td><td style="text-align:right">${tenSP.reduce((s,t)=>s+t.q,0)}</td><td style="text-align:right">100%</td></tr>`;
+
+  // Animate
+  document.querySelectorAll('.card').forEach(c=>{c.style.animation='none';c.offsetHeight;c.style.animation='fi .3s ease'});
+}
+
+function setMonth(m){
+  CUR=m;
+  document.querySelectorAll('.sw-btn').forEach(b=>b.classList.toggle('active',(m==='abr'&&b.textContent.includes('Abril'))||(m==='mai'&&b.textContent.includes('Maio'))||(m==='jun'&&b.textContent.includes('Junho'))||(m==='jul'&&b.textContent.includes('Julho'))));
+  render(m);
+}
+
+render('abr');
+
+// ── FULLSCREEN ────────────────────────────────────────────────
+function toggleFS(){
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen().catch(()=>{});
+    document.getElementById('fs-btn').innerHTML=`
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:14px;height:14px;flex-shrink:0">
+        <path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3M16 21v-3a2 2 0 0 1 2-2h3"/>
+      </svg>Sair da apresentação`;
+  } else {
+    document.exitFullscreen();
+    document.getElementById('fs-btn').innerHTML=`
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:14px;height:14px;flex-shrink:0">
+        <path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M3 16v3a2 2 0 0 0 2 2h3"/>
+      </svg>Apresentar`;
+  }
+}
+document.addEventListener('fullscreenchange',()=>{
+  if(!document.fullscreenElement){
+    document.getElementById('fs-btn').innerHTML=`
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:14px;height:14px;flex-shrink:0">
+        <path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M3 16v3a2 2 0 0 0 2 2h3"/>
+      </svg>Apresentar`;
+  }
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='F11'){e.preventDefault();toggleFS();}
+  if(e.key==='Escape'&&document.fullscreenElement)document.exitFullscreen();
+});
+
+</script>
+</body>
+</html>
