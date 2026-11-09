@@ -476,6 +476,7 @@ const CARGO_DRILL_MONTHS = ['set','out'];
 function br(v){return v.toLocaleString('pt-BR',{minimumFractionDigits:2})}
 function fmtR(v){return 'R$ '+br(v)}
 function fmtH(v){return br(v)+'h'}
+function fmtK(v){return (v/1000).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'k'}
 
 // ── DONUT ──────────────────────────────────────────────────────
 function donut(el, m, f, color1, color2){
@@ -510,19 +511,20 @@ function barChart(el, items, color, labelWidth, unit){
 
 // ── LINE/BAR EVOLUTION CHART (SVG) ────────────────────────────
 function evolChart(el, values, color, mes){
-  const W=400,H=90,pad=30,bW=38,gap=10;
+  const W=460,H=100,pad=24;
   const maxV=Math.max(...values)*1.15||1;
   const labels=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out'];
   const activeIdx=MONTH_IDX[mes];
   let bars='',texts='',xLabels='';
-  const totalW=W-pad*2; const slotW=totalW/(values.length-1||1);
+  const totalW=W-pad*2; const slotW=totalW/(values.length-1||1); const bW=slotW*0.62;
   values.forEach((v,i)=>{
-    const bH=Math.max((v/maxV)*(H-20),2);
+    const bH=Math.max((v/maxV)*(H-26),2);
     const x=pad+i*slotW+(slotW-bW)/2;
     const y=H-bH;
     const isActive=i===activeIdx;
+    const stagger=i%2===1?8:0;
     if(v>0)bars+=`<rect x="${x}" y="${y}" width="${bW}" height="${bH}" rx="3" fill="${isActive?color:'#C5CAE9'}"/>`;
-    texts+=`<text x="${x+bW/2}" y="${y-4}" text-anchor="middle" font-size="9" font-weight="${isActive?700:400}" fill="${isActive?color:'#546E7A'}">${fmtR(v).replace('R$ ','')}</text>`;
+    texts+=`<text x="${x+bW/2}" y="${y-4-stagger}" text-anchor="middle" font-size="8.5" font-weight="${isActive?700:400}" fill="${isActive?color:'#546E7A'}">${fmtK(v)}</text>`;
     xLabels+=`<text x="${x+bW/2}" y="${H+14}" text-anchor="middle" font-size="9" fill="${isActive?color:'#546E7A'}" font-weight="${isActive?700:400}">${labels[i]}</text>`;
   });
   el.innerHTML=`<svg viewBox="0 0 ${W} ${H+20}" class="chart-svg" style="height:${H+20}px">${bars}${texts}${xLabels}</svg>`;
@@ -530,19 +532,20 @@ function evolChart(el, values, color, mes){
 
 // ── HF EVOLUTION CHART ────────────────────────────────────────
 function hfEvolChart(el, values, color, mes){
-  const W=400,H=80,pad=30,bW=38;
+  const W=460,H=90,pad=24;
   const maxV=Math.max(...values)*1.15||1;
   const labels=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out'];
   const activeIdx=MONTH_IDX[mes];
-  const totalW=W-pad*2; const slotW=totalW/(values.length-1||1);
+  const totalW=W-pad*2; const slotW=totalW/(values.length-1||1); const bW=slotW*0.62;
   let bars='',texts='',xLabels='';
   values.forEach((v,i)=>{
-    const bH=Math.max((v/maxV)*(H-20),2);
+    const bH=Math.max((v/maxV)*(H-24),2);
     const x=pad+i*slotW+(slotW-bW)/2;
     const y=H-bH;
     const isActive=i===activeIdx;
+    const stagger=i%2===1?7:0;
     if(v>0)bars+=`<rect x="${x}" y="${y}" width="${bW}" height="${bH}" rx="3" fill="${isActive?color:'#C5CAE9'}"/>`;
-    texts+=`<text x="${x+bW/2}" y="${y-4}" text-anchor="middle" font-size="8.5" font-weight="${isActive?700:400}" fill="${isActive?color:'#546E7A'}">${br(v)}h</text>`;
+    texts+=`<text x="${x+bW/2}" y="${y-4-stagger}" text-anchor="middle" font-size="8.5" font-weight="${isActive?700:400}" fill="${isActive?color:'#546E7A'}">${br(v)}h</text>`;
     xLabels+=`<text x="${x+bW/2}" y="${H+14}" text-anchor="middle" font-size="9" fill="${isActive?color:'#546E7A'}" font-weight="${isActive?700:400}">${labels[i]}</text>`;
   });
   el.innerHTML=`<svg viewBox="0 0 ${W} ${H+20}" class="chart-svg" style="height:${H+20}px">${bars}${texts}${xLabels}</svg>`;
