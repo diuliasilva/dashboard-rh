@@ -1,0 +1,651 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>R&S PortoEX SC</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+
+<style>
+:root {
+  --bg:#F8F9FB;--panel:#FFFFFF;--fg:#0D2137;--fg2:#4B6070;--border:#DDE3E9;
+  --navy:#0D2137;--teal:#0B6E8A;--amber:#F0A500;--green:#16A34A;
+  --red:#DC2626;--orange:#EA580C;--radius:10px;
+  --shadow:0 1px 3px rgba(13,33,55,.08),0 1px 8px rgba(13,33,55,.04);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--fg);
+  padding:0 max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-bottom:48px;min-height:100vh;}
+.header{background:var(--navy);color:#fff;
+  padding:20px max(24px,env(safe-area-inset-left,0px));
+  margin:0 calc(-1*max(16px,env(safe-area-inset-left,0px)));
+  margin-right:calc(-1*max(16px,env(safe-area-inset-right,0px)));
+  margin-bottom:0;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.header-title{font-size:18px;font-weight:700;letter-spacing:-.3px;}
+.header-sub{font-size:12px;opacity:.6;margin-top:2px;}
+.main-nav{background:var(--navy);
+  padding:0 max(24px,env(safe-area-inset-left,0px)) 0;
+  margin:0 calc(-1*max(16px,env(safe-area-inset-left,0px)));
+  margin-right:calc(-1*max(16px,env(safe-area-inset-right,0px)));
+  margin-bottom:24px;display:flex;gap:0;border-bottom:2px solid rgba(255,255,255,.12);}
+.nav-btn{background:none;border:none;color:rgba(255,255,255,.55);
+  font-size:13px;font-weight:600;padding:12px 20px;cursor:pointer;
+  border-bottom:2px solid transparent;margin-bottom:-2px;transition:.15s;
+  font-family:'Inter',system-ui,sans-serif;letter-spacing:.2px;}
+.nav-btn.active{color:#fff;border-bottom-color:#fff;}
+.nav-btn:hover:not(.active){color:rgba(255,255,255,.8);}
+.sub-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
+.sub-btn{background:var(--panel);border:1.5px solid var(--border);border-radius:20px;
+  padding:5px 14px;font-size:13px;font-weight:500;cursor:pointer;color:var(--fg2);
+  transition:.15s;font-family:'Inter',system-ui,sans-serif;}
+.sub-btn.active{background:var(--navy);border-color:var(--navy);color:#fff;}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:24px;}
+.kpi{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);}
+.kpi-val{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--fg);line-height:1;}
+.kpi-lbl{font-size:11px;color:var(--fg2);margin-top:4px;text-transform:uppercase;letter-spacing:.5px;}
+.kpi-delta{font-size:12px;margin-top:6px;font-variant-numeric:tabular-nums;}
+.up{color:var(--green);}.dn{color:var(--red);}.neu{color:var(--fg2);}
+.charts-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px;margin-bottom:24px;}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);}
+.card-title{font-size:14px;font-weight:600;margin-bottom:4px;}
+.card-note{font-size:12px;color:var(--fg2);margin-bottom:16px;}
+.trend-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:24px;}
+.table-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:460px;}
+th{text-align:left;font-size:11px;font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:.5px;padding:0 10px 10px;border-bottom:1.5px solid var(--border);}
+td{padding:11px 10px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+.bar-wrap{display:flex;align-items:center;gap:8px;}
+.track{flex:1;height:5px;background:var(--border);border-radius:3px;min-width:50px;overflow:hidden;}
+.fill{height:100%;border-radius:3px;}
+.badge-open{color:var(--green);background:rgba(22,163,74,.1);border-radius:4px;padding:2px 7px;font-size:11px;font-weight:600;}
+.badge-closed{color:var(--fg2);background:var(--border);border-radius:4px;padding:2px 7px;font-size:11px;font-weight:600;}
+.month-kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:20px;}
+.month-kpi{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);}
+.month-kpi-val{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;}
+.month-kpi-lbl{font-size:11px;color:var(--fg2);margin-top:3px;text-transform:uppercase;letter-spacing:.4px;}
+.dias-badge{display:inline-flex;align-items:center;justify-content:center;min-width:36px;padding:3px 8px;border-radius:6px;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;}
+.dias-fast{background:#16A34A;color:#fff;}
+.dias-mid{background:#F0A500;color:#fff;}
+.dias-slow{background:#DC2626;color:#fff;}
+.media-dias{font-size:28px;font-weight:700;color:var(--amber);font-variant-numeric:tabular-nums;}
+.vagas-abertas-card{background:var(--panel);border:1.5px solid var(--amber);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:24px;}
+.vaga-mes-tag{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;text-transform:uppercase;letter-spacing:.4px;margin-left:6px;vertical-align:middle;}
+.vaga-mes-out{background:rgba(240,165,0,.15);color:#b87c00;}
+.vaga-mes-nov{background:rgba(11,110,138,.15);color:var(--teal);}
+.vaga-mes-set{background:rgba(220,38,38,.12);color:var(--red);}
+.dias-aberto-warn{font-weight:700;color:var(--red);}
+.dias-aberto-mid{font-weight:700;color:var(--orange);}
+.dias-aberto-ok{font-weight:700;color:var(--fg2);}
+.tt{position:fixed;pointer-events:none;z-index:99;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:12px;box-shadow:0 4px 12px rgba(0,0,0,.12);display:none;white-space:nowrap;color:var(--fg);}
+</style>
+
+<div class="header">
+  <div>
+    <div class="header-title">R&S PortoEX — SC</div>
+    <div class="header-sub">Acompanhamento de Recrutamento &amp; Seleção</div>
+  </div>
+  <div id="ctx-label" style="font-size:13px;opacity:.7;text-align:right;"></div>
+</div>
+
+<div class="main-nav">
+  <button class="nav-btn active" id="nav-semanas" onclick="switchView('semanas')">📅 Semanas</button>
+  <button class="nav-btn" id="nav-mensal" onclick="switchView('mensal')">📆 Mensal</button>
+</div>
+
+<div id="view-semanas">
+  <div id="week-tabs" class="sub-tabs"></div>
+  <div id="vagas-abertas-semanal"></div>
+  <div id="kpi-row" class="kpi-row"></div>
+  <div class="charts-row">
+    <div class="card">
+      <div class="card-title">Funil de CVs</div>
+      <div class="card-note" id="funil-note">Semana selecionada</div>
+      <svg id="funil-svg" width="100%" viewBox="0 0 240 180" style="display:block;overflow:visible"></svg>
+    </div>
+    <div class="card">
+      <div class="card-title">CVs por Vaga</div>
+      <div class="card-note">Semana selecionada</div>
+      <svg id="vaga-svg" width="100%" viewBox="0 0 240 160" style="display:block;overflow:visible"></svg>
+    </div>
+  </div>
+  <div class="trend-card">
+    <div class="card-title">Histórico Semanal</div>
+    <div class="card-note">CVs recebidos (—) e Aprovados (- -) por semana</div>
+    <svg id="trend-svg" width="100%" viewBox="0 0 680 160" style="display:block;overflow:visible"></svg>
+  </div>
+  <div class="table-card">
+    <div class="card-title" style="margin-bottom:4px">Detalhe por Vaga</div>
+    <div class="card-note">Semana selecionada</div>
+    <table>
+      <thead><tr><th>Vaga</th><th>CVs</th><th>Reprov.</th><th>Aprov.</th><th>Taxa</th><th>Status</th></tr></thead>
+      <tbody id="vaga-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="view-mensal" style="display:none">
+  <div id="month-tabs" class="sub-tabs"></div>
+  <div id="month-content"></div>
+  <div id="vagas-abertas-mensal"></div>
+</div>
+
+<div class="tt" id="tt"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// DADOS
+// ═══════════════════════════════════════════════════════════════
+
+const VAGAS_ABERTAS = [
+  {vaga:"Conferente 2º turno",          tipo:"Aumento Quadro",       abertura:"01/10/2026", diasAberto:46, status:"Aberta"},
+  {vaga:"Ajudante 1º turno",            tipo:"Sub/ Alan",             abertura:"01/10/2026", diasAberto:46, status:"Fechada", candidato:"Weslen", fechamento:"06/11"},
+  {vaga:"Ajudante 2º turno",            tipo:"Aumento Quadro",        abertura:"01/10/2026", diasAberto:46, status:"Aberta"},
+  {vaga:"Motorista 1º turno",           tipo:"Sub/ Heber e Gabriel",  abertura:"22/10/2026", diasAberto:25, status:"Aberta"},
+  {vaga:"Executivo Comercial SP",       tipo:"—",                     abertura:"03/11/2026", diasAberto:13, status:"Aberta"},
+  {vaga:"Auxiliar/Analista Oper. 2T",   tipo:"Sub/ Maju",             abertura:"05/11/2026", diasAberto:11, status:"Aberta"},
+  {vaga:"Auxiliar de Atendimento",      tipo:"Sub/ Douglas",          abertura:"10/11/2026", diasAberto:6,  status:"Aberta"},
+];
+
+const SEMANAS = [
+  {
+    id:"sem-0110", mes:"2026-10", ordem:1,
+    label:"01/10 a 02/10",
+    cvs:6, reprov:4, aprov:1, entrevRH:1, entrevGestor:0, taxaAprov:0.167,
+    vagas:[
+      {vaga:"Motorista 2T",  cvs:3, reprov:2, aprov:1, taxaAprov:0.33, status:"Fechada", obs:"Erivelton contratado 01/10"},
+      {vaga:"Ajudante 2T",   cvs:2, reprov:2, aprov:0, taxaAprov:0.0,  status:"Fechada", obs:"José contratado 01/10"},
+      {vaga:"Conferente 1T", cvs:1, reprov:1, aprov:0, taxaAprov:0.0,  status:"Aberta"},
+    ],
+    obs:"Dados parciais — apenas 01 e 02/10. 2 admissões: Erivelton (Motorista 2T) e José (Ajudante 2T)."
+  },
+  {
+    id:"sem-0510", mes:"2026-10", ordem:2,
+    label:"05/10 a 09/10",
+    cvs:6, reprov:4, aprov:1, entrevRH:2, entrevGestor:0, taxaAprov:0.167,
+    vagas:[
+      {vaga:"Motorista 2T",  cvs:6, reprov:4, aprov:1, taxaAprov:0.17, status:"Aberta"},
+      {vaga:"Ajudante 2T",   cvs:4, reprov:3, aprov:0, taxaAprov:0.0,  status:"Aberta"},
+      {vaga:"Ajudante 1T",   cvs:3, reprov:2, aprov:0, taxaAprov:0.0,  status:"Aberta"},
+      {vaga:"Conferente 1T", cvs:2, reprov:2, aprov:0, taxaAprov:0.0,  status:"Aberta"},
+    ]
+  },
+  {
+    id:"sem-1310", mes:"2026-10", ordem:3,
+    label:"13/10 a 16/10",
+    cvs:9, reprov:6, aprov:0, entrevRH:0, entrevGestor:0, taxaAprov:0,
+    vagas:[
+      {vaga:"Conferente",  cvs:6, reprov:5, aprov:0, taxaAprov:0.0, status:"Aberta"},
+      {vaga:"Ajudante 2T", cvs:3, reprov:1, aprov:0, taxaAprov:0.0, status:"Aberta"},
+    ]
+  },
+  {
+    id:"sem-1910", mes:"2026-10", ordem:4,
+    label:"19/10 a 23/10",
+    cvs:13, reprov:9, aprov:3, entrevRH:3, entrevGestor:1, taxaAprov:0.231,
+    vagas:[
+      {vaga:"Motorista 1T",  cvs:7, reprov:5, aprov:2, taxaAprov:0.29, status:"Aberta"},
+      {vaga:"Ajudante 1T",   cvs:4, reprov:3, aprov:1, taxaAprov:0.25, status:"Aberta"},
+      {vaga:"Conferente 2T", cvs:2, reprov:1, aprov:0, taxaAprov:0.0,  status:"Aberta"},
+      {vaga:"Conferente 1T", cvs:0, reprov:0, aprov:1, taxaAprov:null, status:"Fechada"},
+    ],
+    obs:"Conferente 1T fechada — Robson admitido em 19/10"
+  },
+  {
+    id:"sem-2610", mes:"2026-10", ordem:5,
+    label:"26/10 a 30/10",
+    cvs:34, reprov:21, aprov:5, entrevRH:2, entrevGestor:0, taxaAprov:0.147,
+    vagas:[
+      {vaga:"Conferente 2T", cvs:11, reprov:9,  aprov:2, taxaAprov:0.18, status:"Aberta"},
+      {vaga:"Motorista 1T",  cvs:12, reprov:3,  aprov:2, taxaAprov:0.17, status:"Aberta"},
+      {vaga:"Ajudante 2T",   cvs:11, reprov:9,  aprov:1, taxaAprov:0.09, status:"Aberta"},
+      {vaga:"Ajudante 1T",   cvs:0,  reprov:0,  aprov:0, taxaAprov:null, status:"Aberta", obs:"Sem CVs nesta semana"},
+    ]
+  },
+  {
+    id:"sem-0311", mes:"2026-11", ordem:1,
+    label:"03/11 a 06/11",
+    cvs:25, reprov:20, aprov:1, entrevRH:1, entrevGestor:0, taxaAprov:0.04,
+    vagas:[
+      {vaga:"Ajudante 1º turno",   cvs:7,  reprov:2,  aprov:1, taxaAprov:0.14, status:"Fechada", obs:"Weslen admitido 06/11"},
+      {vaga:"Motorista 1º turno",  cvs:8,  reprov:8,  aprov:0, taxaAprov:0.0,  status:"Aberta"},
+      {vaga:"Conferente 2º turno", cvs:10, reprov:10, aprov:0, taxaAprov:0.0,  status:"Aberta"},
+    ],
+    obs:"Semana 03–06/11 — apenas SC. 3 candidatos desclassificados na pesquisa. Ajudante 1T fechada: Weslen adm. 06/11."
+  },
+  {
+    id:"sem-0911", mes:"2026-11", ordem:2,
+    label:"09/11 a 12/11",
+    cvs:67, reprov:37, aprov:22, entrevRH:4, entrevGestor:0, taxaAprov:0.33,
+    vagas:[
+      {vaga:"Motorista 1º turno",          cvs:25, reprov:15, aprov:5,  taxaAprov:0.20, status:"Aberta", obs:"1 entrev. RH, agendar +1 semana 16–20/11"},
+      {vaga:"Auxiliar/Analista Oper. 2T",  cvs:21, reprov:9,  aprov:10, taxaAprov:0.48, status:"Aberta", obs:"3 entrev. RH, agendar +2 semana 16–20/11"},
+      {vaga:"Auxiliar de Atendimento",     cvs:9,  reprov:4,  aprov:4,  taxaAprov:0.44, status:"Aberta"},
+      {vaga:"Conferente 2º turno",         cvs:6,  reprov:6,  aprov:0,  taxaAprov:0.0,  status:"Aberta"},
+      {vaga:"Recepção (vaga anônima)",     cvs:3,  reprov:1,  aprov:2,  taxaAprov:0.67, status:"Aberta"},
+      {vaga:"Ajudante 2º turno",           cvs:3,  reprov:2,  aprov:1,  taxaAprov:0.33, status:"Aberta"},
+    ],
+    obs:"Semana 09–12/11 — SC. Total SC: 67 CVs. SP: +148 CVs (Exec. Comercial 112, Ajudante 9, Motorista 27 — todos reprovados). Levantamento passa a ser seg–qui a partir desta semana."
+  }
+];
+
+const MESES = [
+  {
+    id:"mes-0626", label:"Junho 2026", ano:2026, mes:6,
+    cvs:131, reprov:null, aprov:null, entrevRH:24, entrevGestor:11, taxaAprov:null, contratacoes:2,
+    semanas:[], vagas:[], fechamento:[], mediaDias:null,
+    obs:"Junho/2026 — 131 CVs recebidos, 35 entrevistas (24 RH + 11 Gestor), 2 admissões efetivadas. 9 vagas em aberto no mês."
+  },
+  {
+    id:"mes-0726", label:"Julho 2026", ano:2026, mes:7,
+    cvs:77, reprov:null, aprov:null, entrevRH:23, entrevGestor:10, taxaAprov:null, contratacoes:4,
+    semanas:[],
+    vagas:[
+      {vaga:"Motorista 1º turno",          cvs:null, reprov:null, aprov:null, taxaAprov:null, contrat:2, obs:"2 adm. 16/07"},
+      {vaga:"Analista Operacional",         cvs:null, reprov:null, aprov:null, taxaAprov:null, contrat:1, obs:"Adm. 08/07"},
+      {vaga:"Auxiliar/Analista Financeiro", cvs:null, reprov:null, aprov:null, taxaAprov:null, contrat:1, obs:"Adm. 02/07"},
+      {vaga:"Recepção",                     cvs:null, reprov:null, aprov:null, taxaAprov:null, contrat:1, obs:"Adm. 13/07"},
+    ],
+    fechamento:[
+      {vaga:"Auxiliar/Analista Financeiro", tipo:"—", abertura:"—", fechamento:"02/07", admissao:"02/07", dias:null, candidato:"—"},
+      {vaga:"Analista Operacional",         tipo:"—", abertura:"—", fechamento:"08/07", admissao:"08/07", dias:null, candidato:"—"},
+      {vaga:"Recepção",                     tipo:"—", abertura:"—", fechamento:"13/07", admissao:"13/07", dias:null, candidato:"—"},
+      {vaga:"Motorista 1º turno",           tipo:"—", abertura:"—", fechamento:"16/07", admissao:"16/07", dias:null, candidato:"2 admissões"},
+    ],
+    mediaDias:null,
+    obs:"Julho/2026 — 77 CVs, 33 entrevistas (23 RH + 10 Gestor), 4 contratações (7 admissões no mês)."
+  },
+  {
+    id:"mes-0826", label:"Agosto 2026", ano:2026, mes:8,
+    cvs:83, reprov:53, aprov:30, entrevRH:24, entrevGestor:8, taxaAprov:0.36, contratacoes:4,
+    semanas:[],
+    vagas:[
+      {vaga:"Motorista 1º turno",          cvs:15, reprov:13, aprov:2,  taxaAprov:0.13, contrat:0},
+      {vaga:"Analista/Auxiliar Comercial", cvs:23, reprov:13, aprov:10, taxaAprov:0.43, contrat:1, obs:"Aguardando admissão"},
+      {vaga:"Ajudante 2º turno",           cvs:10, reprov:8,  aprov:3,  taxaAprov:0.30, contrat:1},
+      {vaga:"Recepcionista",               cvs:20, reprov:10, aprov:10, taxaAprov:0.50, contrat:1},
+      {vaga:"Aux. Operacional 1T",         cvs:null, reprov:null, aprov:null, taxaAprov:null, contrat:1, obs:"Promoção interna — Maria Alice"},
+    ],
+    fechamento:[
+      {vaga:"Ajudante 2º turno",           tipo:"Sub/ Marcos",  abertura:"11/05", fechamento:"03/08", admissao:"06/07", dias:84,  candidato:"Jean"},
+      {vaga:"Auxiliar Operacional 1T",     tipo:"Sub/ Célio",   abertura:"03/08", fechamento:"07/08", admissao:"Interna",dias:7,   candidato:"Maria Alice"},
+      {vaga:"Recepcionista",               tipo:"Sub/ Maria",   abertura:"07/08", fechamento:"21/08", admissao:"26/08", dias:14,  candidato:"Evelin"},
+      {vaga:"Ajudante 1º turno",           tipo:"Sub/ Kennedy", abertura:"11/05", fechamento:"21/08", admissao:"26/08", dias:102, candidato:"Alan"},
+      {vaga:"Ajudante 2º turno (2)",       tipo:"Sub/ Jean",    abertura:"21/08", fechamento:"26/08", admissao:"02/09", dias:6,   candidato:"Denis"},
+      {vaga:"Analista/Auxiliar Comercial", tipo:"Sub/ Day",     abertura:"03/07", fechamento:"28/08", admissao:"Aguardar",dias:56, candidato:"Leandra"},
+    ],
+    mediaDias:45,
+    obs:"Agosto/2026 — 83 CVs triados, 32 entrevistas (24 RH + 8 Gestor), 4 contratações. Taxa CVs→RH: 29%. 6 vagas fechadas, média 45 dias."
+  },
+  {
+    id:"mes-0926", label:"Setembro 2026", ano:2026, mes:9,
+    cvs:63, reprov:47, aprov:16, entrevRH:9, entrevGestor:7, taxaAprov:0.254, contratacoes:4,
+    semanas:[],
+    vagas:[
+      {vaga:"Motorista 1T",        cvs:12, reprov:9,  aprov:3, taxaAprov:0.25, contrat:1},
+      {vaga:"Motorista 2T",        cvs:10, reprov:8,  aprov:2, taxaAprov:0.20, contrat:1},
+      {vaga:"Ajudante 2T",         cvs:18, reprov:13, aprov:5, taxaAprov:0.28, contrat:1},
+      {vaga:"Aux. Administrativo", cvs:14, reprov:10, aprov:4, taxaAprov:0.29, contrat:1},
+      {vaga:"Assistente Fiscal",   cvs:9,  reprov:7,  aprov:2, taxaAprov:0.22, contrat:0},
+    ],
+    fechamento:[
+      {vaga:"Motorista 1º turno",  tipo:"Sub/ Roni",        abertura:"14/07", fechamento:"14/09", admissao:"17/09", dias:61, candidato:"Heber André Perez"},
+      {vaga:"Motorista 2º turno",  tipo:"Sub/ João Carlos", abertura:"29/07", fechamento:"17/09", admissao:"22/09", dias:50, candidato:"Gabriel Zago"},
+      {vaga:"Ajudante 2º turno",   tipo:"Sub/ Jean",        abertura:"21/08", fechamento:"18/09", admissao:"22/09", dias:28, candidato:"Kauã Laspidea"},
+      {vaga:"Ajudante 2º turno",   tipo:"Sub/ Lucas",       abertura:"21/08", fechamento:"28/09", admissao:"01/10", dias:28, candidato:"José Nadilson"},
+      {vaga:"Motorista 2º turno",  tipo:"Sub/ Matuzalem",   abertura:"22/09", fechamento:"29/09", admissao:"01/10", dias:7,  candidato:"Erivelton Ferreira"},
+    ],
+    mediaDias:35,
+    obs:"Set/2026 — 4 contratações, 5 vagas fechadas no mês (Tempo Médio: 35 dias)."
+  },
+  {
+    id:"mes-1026", label:"Outubro 2026", ano:2026, mes:10,
+    cvs:68, reprov:44, aprov:10, entrevRH:8, entrevGestor:1, taxaAprov:0.147, contratacoes:3,
+    semanas:["sem-0110","sem-0510","sem-1310","sem-1910","sem-2610"],
+    vagas:[
+      {vaga:"Motorista 1T",  cvs:19, reprov:8,  aprov:4, taxaAprov:0.21, contrat:0},
+      {vaga:"Conferente 2T", cvs:13, reprov:10, aprov:2, taxaAprov:0.15, contrat:0},
+      {vaga:"Ajudante 2T",   cvs:17, reprov:14, aprov:1, taxaAprov:0.06, contrat:1, obs:"José admitido 01/10"},
+      {vaga:"Ajudante 1T",   cvs:7,  reprov:5,  aprov:1, taxaAprov:0.14, contrat:0},
+      {vaga:"Conferente 1T", cvs:3,  reprov:3,  aprov:1, taxaAprov:null, contrat:1, obs:"Robson admitido 19/10"},
+      {vaga:"Motorista 2T",  cvs:9,  reprov:6,  aprov:1, taxaAprov:0.11, contrat:1, obs:"Erivelton admitido 01/10"},
+    ],
+    fechamento:[
+      {vaga:"Ajudante 2º turno",   tipo:"Sub/ Lucas",     abertura:"21/08", fechamento:"28/09", admissao:"01/10", dias:28, candidato:"José Nadilson"},
+      {vaga:"Motorista 2º turno",  tipo:"Sub/ Matuzalem", abertura:"22/09", fechamento:"29/09", admissao:"01/10", dias:7,  candidato:"Erivelton Ferreira"},
+      {vaga:"Conferente 1º turno", tipo:"Sub/ Guilherme", abertura:"29/09", fechamento:"19/10", admissao:"19/10", dias:15, candidato:"Robson"},
+    ],
+    mediaDias:17,
+    obs:"Dados completos de outubro (01/10–30/10). 3 contratações no mês. 4 vagas ainda em aberto ao final do mês."
+  }
+];
+
+// ═══════════════════════════════════════════════════════════════
+const COLORS = ["#0B6E8A","#16A34A","#F0A500","#DC2626","#7C3AED"];
+function cssVar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+const fmt=d3.format(',');
+const fmtP=v=>v==null?'—':d3.format('.0%')(v);
+
+let curView='semanas', selSem=SEMANAS.length-1, selMes=MESES.length-1;
+
+function switchView(v){
+  curView=v;
+  document.getElementById('view-semanas').style.display=v==='semanas'?'':'none';
+  document.getElementById('view-mensal').style.display=v==='mensal'?'':'none';
+  document.getElementById('nav-semanas').classList.toggle('active',v==='semanas');
+  document.getElementById('nav-mensal').classList.toggle('active',v==='mensal');
+  if(v==='semanas') renderSemanas(); else renderMensal();
+}
+
+function deltaHtml(cur,prev,lowerIsBetter){
+  if(prev==null) return '';
+  const d=cur-prev;
+  if(d===0) return `<span class="neu">= igual</span>`;
+  const up=d>0,good=lowerIsBetter?!up:up;
+  return `<span class="${good?'up':'dn'}">${up?'▲':'▼'} ${fmt(Math.abs(d))}</span>`;
+}
+function deltaHtmlP(cur,prev){
+  if(prev==null||cur==null) return '';
+  const d=cur-prev;
+  if(Math.abs(d)<.001) return `<span class="neu">= igual</span>`;
+  return `<span class="${d>0?'up':'dn'}">${d>0?'▲':'▼'} ${d3.format('+.0%')(d)}</span>`;
+}
+function taxaColor(t){
+  if(t==null) return cssVar('--fg2');
+  return t>=.5?cssVar('--green'):t>=.25?cssVar('--orange'):cssVar('--red');
+}
+
+function renderSemanas(){
+  const wk=SEMANAS[selSem], prev=selSem>0?SEMANAS[selSem-1]:null;
+  renderWeekTabs(); renderVagasAbertas('vagas-abertas-semanal');
+  renderKPIs(wk,prev); renderFunil(wk); renderVagaBars(wk); renderTrend(); renderTable(wk);
+  document.getElementById('ctx-label').textContent='Semana '+wk.label;
+}
+
+function renderWeekTabs(){
+  const wrap=document.getElementById('week-tabs'); wrap.innerHTML='';
+  SEMANAS.forEach((w,i)=>{
+    const btn=document.createElement('button');
+    btn.className='sub-btn'+(i===selSem?' active':'');
+    btn.textContent=w.label;
+    btn.onclick=()=>{selSem=i;renderSemanas();};
+    wrap.appendChild(btn);
+  });
+}
+
+function renderKPIs(wk,prev){
+  const items=[
+    {val:fmt(wk.cvs),          lbl:'CVs Recebidos',  d:prev?deltaHtml(wk.cvs,prev.cvs,false):''},
+    {val:fmt(wk.reprov),       lbl:'Reprovados',      d:prev?deltaHtml(wk.reprov,prev.reprov,true):''},
+    {val:fmt(wk.aprov),        lbl:'Aprovados',       d:prev?deltaHtml(wk.aprov,prev.aprov,false):''},
+    {val:fmt(wk.entrevRH),     lbl:'Entrev. RH',      d:prev?deltaHtml(wk.entrevRH,prev.entrevRH,false):''},
+    {val:fmt(wk.entrevGestor), lbl:'Entrev. Gestor',  d:prev?deltaHtml(wk.entrevGestor,prev.entrevGestor,false):''},
+    {val:fmtP(wk.taxaAprov),   lbl:'Taxa Aprovação',  d:prev?deltaHtmlP(wk.taxaAprov,prev.taxaAprov):''},
+  ];
+  document.getElementById('kpi-row').innerHTML=items.map(k=>`
+    <div class="kpi"><div class="kpi-val">${k.val}</div><div class="kpi-lbl">${k.lbl}</div>
+    ${k.d?`<div class="kpi-delta">${k.d}</div>`:''}</div>`).join('');
+}
+
+function renderFunil(wk){
+  const svg=document.getElementById('funil-svg'),tt=document.getElementById('tt');
+  d3.select(svg).selectAll('*').remove();
+  document.getElementById('funil-note').textContent=`Total: ${fmt(wk.cvs)} CVs recebidos`;
+  const slices=[
+    {label:'Reprovados',val:wk.reprov,color:COLORS[3]},
+    {label:'Aprovados', val:wk.aprov, color:COLORS[1]},
+    {label:'Entrev. RH',val:wk.entrevRH,color:COLORS[0]},
+    {label:'Gestor',    val:wk.entrevGestor,color:COLORS[2]},
+  ].filter(s=>s.val>0);
+  if(!slices.length){d3.select(svg).append('text').attr('x',120).attr('y',90).attr('text-anchor','middle').attr('fill','var(--fg2)').attr('font-size',12).text('Sem dados');return;}
+  const total=wk.cvs||1,pie=d3.pie().value(d=>d.val).sort(null);
+  const arc=d3.arc().innerRadius(40).outerRadius(68);
+  const g=d3.select(svg).append('g').attr('transform','translate(90,90)');
+  g.selectAll('path').data(pie(slices)).enter().append('path')
+    .attr('d',arc).attr('fill',d=>d.data.color).attr('stroke','var(--panel)').attr('stroke-width',2)
+    .style('cursor','pointer')
+    .on('mousemove',(ev,d)=>{
+      tt.style.display='block';tt.style.left=(ev.clientX+14)+'px';tt.style.top=(ev.clientY-8)+'px';
+      tt.innerHTML=`<b>${d.data.label}</b><br>${fmt(d.data.val)} (${d3.format('.0%')(d.data.val/total)})`;
+    }).on('mouseleave',()=>tt.style.display='none');
+  g.selectAll('.pct').data(pie(slices).filter(d=>d.data.val/total>.08)).enter()
+    .append('text').attr('transform',d=>`translate(${arc.centroid(d)})`)
+    .attr('text-anchor','middle').attr('dominant-baseline','middle')
+    .attr('font-size',10).attr('font-family','Inter,sans-serif').attr('fill','#fff')
+    .text(d=>d3.format('.0%')(d.data.val/total));
+  const leg=d3.select(svg).append('g').attr('transform',`translate(168,${90-slices.length*11})`);
+  slices.forEach((s,i)=>{
+    leg.append('rect').attr('width',8).attr('height',8).attr('rx',2).attr('y',i*22).attr('fill',s.color);
+    leg.append('text').attr('x',12).attr('y',i*22+8).attr('font-size',11).attr('font-family','Inter,sans-serif').attr('fill','var(--fg)').text(`${s.label}: ${fmt(s.val)}`);
+  });
+}
+
+function renderVagaBars(wk){
+  const vagas=(wk.vagas||[]).filter(v=>v.cvs>0);
+  const svg=d3.select('#vaga-svg'); svg.selectAll('*').remove();
+  if(!vagas.length){svg.append('text').attr('x',120).attr('y',80).attr('text-anchor','middle').attr('fill','var(--fg2)').attr('font-size',12).text('Sem dados');return;}
+  const ml=72,mr=36,mt=8,mb=8,W=240,H=160,iW=W-ml-mr,iH=H-mt-mb;
+  const maxV=d3.max(vagas,d=>d.cvs)||1;
+  const x=d3.scaleLinear([0,maxV],[0,iW]);
+  const y=d3.scaleBand(vagas.map(v=>v.vaga),[0,iH]).padding(.32);
+  const bH=Math.min(y.bandwidth(),20);
+  const g=svg.append('g').attr('transform',`translate(${ml},${mt})`);
+  g.selectAll('.gl').data(x.ticks(4)).enter().append('line')
+    .attr('x1',d=>x(d)).attr('x2',d=>x(d)).attr('y1',0).attr('y2',iH)
+    .attr('stroke','var(--border)').attr('stroke-width',1);
+  g.selectAll('.bar').data(vagas).enter().append('rect')
+    .attr('x',0).attr('y',d=>y(d.vaga)+(y.bandwidth()-bH)/2)
+    .attr('width',d=>x(d.cvs)).attr('height',bH).attr('rx',4)
+    .attr('fill',(_,i)=>COLORS[i%COLORS.length]);
+  g.selectAll('.vl').data(vagas).enter().append('text')
+    .attr('x',d=>x(d.cvs)+5).attr('y',d=>y(d.vaga)+y.bandwidth()/2)
+    .attr('dominant-baseline','middle').attr('font-size',11).attr('font-family','Inter,sans-serif').attr('fill','var(--fg)').text(d=>fmt(d.cvs));
+  g.selectAll('.yl').data(vagas).enter().append('text')
+    .attr('x',-6).attr('y',d=>y(d.vaga)+y.bandwidth()/2)
+    .attr('dominant-baseline','middle').attr('text-anchor','end')
+    .attr('font-size',11).attr('font-family','Inter,sans-serif').attr('fill','var(--fg2)')
+    .text(d=>d.vaga.length>11?d.vaga.slice(0,10)+'…':d.vaga);
+}
+
+function renderTrend(){
+  const W=680,H=160,ml=36,mr=80,mt=16,mb=28,iW=W-ml-mr,iH=H-mt-mb;
+  const svg=d3.select('#trend-svg'); svg.selectAll('*').remove();
+  const tt=document.getElementById('tt');
+  if(!SEMANAS.length) return;
+  const labels=SEMANAS.map(w=>w.label.split(' a ')[0]);
+  const x=d3.scalePoint(labels,[0,iW]).padding(.3);
+  const maxY=(d3.max(SEMANAS,w=>w.cvs)||0)*1.2||10;
+  const y=d3.scaleLinear([0,maxY],[iH,0]);
+  const g=svg.append('g').attr('transform',`translate(${ml},${mt})`);
+  g.selectAll('.yg').data(y.ticks(4)).enter().append('line')
+    .attr('x1',0).attr('x2',iW).attr('y1',d=>y(d)).attr('y2',d=>y(d))
+    .attr('stroke','var(--border)').attr('stroke-width',1);
+  g.append('g').call(d3.axisLeft(y).ticks(4).tickSize(0))
+    .call(a=>a.select('.domain').remove())
+    .call(a=>a.selectAll('text').attr('font-size',10).attr('font-family','Inter,sans-serif').attr('fill','var(--fg2)'));
+  g.append('g').attr('transform',`translate(0,${iH})`).call(d3.axisBottom(x).tickSize(0))
+    .call(a=>a.select('.domain').remove())
+    .call(a=>a.selectAll('text').attr('font-size',10).attr('font-family','Inter,sans-serif').attr('fill','var(--fg2)').attr('dy','1.3em'));
+  const defs=svg.append('defs');
+  defs.append('linearGradient').attr('id','ga').attr('x2',0).attr('y2',1)
+    .call(g=>{
+      g.append('stop').attr('offset','0%').attr('stop-color',COLORS[0]).attr('stop-opacity',.18);
+      g.append('stop').attr('offset','100%').attr('stop-color',COLORS[0]).attr('stop-opacity',0);
+    });
+  g.append('path').datum(SEMANAS).attr('fill','url(#ga)')
+    .attr('d',d3.area().x((_,i)=>x(labels[i])).y0(iH).y1(d=>y(d.cvs)).curve(d3.curveMonotoneX));
+  [[d=>d.cvs,COLORS[0],''],[d=>d.aprov,COLORS[1],'5,3']].forEach(([acc,col,dash])=>{
+    g.append('path').datum(SEMANAS).attr('fill','none').attr('stroke',col).attr('stroke-width',2.5)
+      .attr('stroke-dasharray',dash||null).attr('stroke-linecap','round')
+      .attr('d',d3.line().x((_,i)=>x(labels[i])).y(d=>y(acc(d))).curve(d3.curveMonotoneX));
+    g.selectAll(null).data(SEMANAS).enter().append('circle')
+      .attr('r',4).attr('fill',col).attr('stroke','var(--panel)').attr('stroke-width',1.5)
+      .attr('cx',(_,i)=>x(labels[i])).attr('cy',d=>y(acc(d)));
+  });
+  const last=SEMANAS[SEMANAS.length-1],li=SEMANAS.length-1;
+  g.append('text').attr('x',x(labels[li])+10).attr('y',y(last.cvs))
+    .attr('dominant-baseline','middle').attr('font-size',10).attr('font-family','Inter,sans-serif').attr('fill',COLORS[0]).text(`CVs: ${fmt(last.cvs)}`);
+  g.append('text').attr('x',x(labels[li])+10).attr('y',y(last.aprov)+14)
+    .attr('dominant-baseline','middle').attr('font-size',10).attr('font-family','Inter,sans-serif').attr('fill',COLORS[1]).text(`Aprov: ${fmt(last.aprov)}`);
+  g.append('rect').attr('width',iW).attr('height',iH).attr('fill','transparent').style('cursor','crosshair')
+    .on('mousemove',function(ev){
+      const[mx]=d3.pointer(ev,this);
+      let best=0,bd=Infinity;
+      labels.forEach((l,i)=>{const d=Math.abs(x(l)-mx);if(d<bd){bd=d;best=i;}});
+      const wk=SEMANAS[best];
+      tt.style.display='block';tt.style.left=(ev.clientX+14)+'px';tt.style.top=(ev.clientY-8)+'px';
+      tt.innerHTML=`<span style="color:var(--fg2)">${wk.label}</span><br><span style="color:${COLORS[0]}">●</span> CVs: <b>${fmt(wk.cvs)}</b> &nbsp;<span style="color:${COLORS[1]}">●</span> Aprov: <b>${fmt(wk.aprov)}</b>`;
+    }).on('mouseleave',()=>tt.style.display='none');
+}
+
+function renderTable(wk){
+  document.getElementById('vaga-tbody').innerHTML=(wk.vagas||[]).map(v=>{
+    const t=v.taxaAprov,pct=fmtP(t),col=taxaColor(t);
+    const fill=t!=null?Math.min(100,t*100)+'%':'0%';
+    const badge=v.status==='Fechada'?`<span class="badge-closed">Fechada</span>`:`<span class="badge-open">Aberta</span>`;
+    return `<tr><td><b>${v.vaga}</b></td><td>${fmt(v.cvs??0)}</td><td>${fmt(v.reprov??0)}</td><td>${fmt(v.aprov??0)}</td>
+      <td><div class="bar-wrap"><div class="track"><div class="fill" style="width:${fill};background:${col}"></div></div><span style="min-width:34px">${pct}</span></div></td>
+      <td>${badge}</td></tr>`;
+  }).join('');
+}
+
+function renderMensal(){renderMonthTabs();renderMonthContent();renderVagasAbertas('vagas-abertas-mensal');}
+
+function renderMonthTabs(){
+  const wrap=document.getElementById('month-tabs'); wrap.innerHTML='';
+  if(!MESES.length){wrap.innerHTML='<span style="color:var(--fg2);font-size:13px">Nenhum mês fechado ainda.</span>';return;}
+  MESES.forEach((m,i)=>{
+    const btn=document.createElement('button');
+    btn.className='sub-btn'+(i===selMes?' active':'');
+    btn.textContent=m.label.split(' ')[0];
+    btn.onclick=()=>{selMes=i;renderMonthContent();};
+    wrap.appendChild(btn);
+  });
+}
+
+function diasBadge(d){
+  if(d==null) return '<span style="color:var(--fg2)">—</span>';
+  const cls=d<=15?'dias-fast':d<=35?'dias-mid':'dias-slow';
+  return `<span class="dias-badge ${cls}">${d}d</span>`;
+}
+
+function renderMonthContent(){
+  const el=document.getElementById('month-content');
+  if(!MESES.length){el.innerHTML='';return;}
+  const m=MESES[selMes];
+  const semDoMes=SEMANAS.filter(s=>m.semanas.includes(s.id));
+  document.getElementById('ctx-label').textContent=m.label;
+  const kpisBase=[
+    {val:m.cvs!=null?fmt(m.cvs):'—',               lbl:'CVs Recebidos'},
+    {val:m.reprov!=null?fmt(m.reprov):'—',           lbl:'Reprovados'},
+    {val:m.aprov!=null?fmt(m.aprov):'—',             lbl:'Aprovados'},
+    {val:m.contratacoes!=null?fmt(m.contratacoes):'—',lbl:'Contratações',green:true},
+    {val:m.entrevRH!=null?fmt(m.entrevRH):'—',       lbl:'Entrev. RH'},
+    {val:m.entrevGestor!=null?fmt(m.entrevGestor):'—',lbl:'Entrev. Gestor'},
+    {val:fmtP(m.taxaAprov),                           lbl:'Taxa Aprovação'},
+  ];
+  if(m.mediaDias!=null) kpisBase.push({val:m.mediaDias+'d',lbl:'Tempo Médio Fecham.',accent:true});
+  const hasContrat=(m.vagas||[]).some(v=>v.contrat!=null);
+  const vagaRows=(m.vagas||[]).map(v=>{
+    const t=v.taxaAprov,pct=fmtP(t),col=taxaColor(t);
+    const fill=t!=null?Math.min(100,t*100)+'%':'0%';
+    return `<tr><td><b>${v.vaga}</b></td><td>${fmt(v.cvs??0)}</td><td>${fmt(v.reprov??0)}</td><td>${fmt(v.aprov??0)}</td>
+      <td><div class="bar-wrap"><div class="track"><div class="fill" style="width:${fill};background:${col}"></div></div><span style="min-width:34px">${pct}</span></div></td>
+      ${hasContrat?`<td style="font-weight:600">${v.contrat!=null?v.contrat:'—'}</td>`:''}
+      <td style="font-size:11px;color:var(--fg2)">${v.obs||'—'}</td></tr>`;
+  }).join('');
+  const fech=m.fechamento||[];
+  const fechHtml=fech.length?`
+    <div class="table-card" style="margin-bottom:24px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+        <div><div class="card-title">⏱ Tempo de Fechamento de Vagas</div>
+          <div class="card-note">${fech.length} vaga(s) fechada(s) no mês</div></div>
+        ${m.mediaDias!=null?`<div style="text-align:right"><div class="media-dias">${m.mediaDias}d</div>
+          <div style="font-size:11px;color:var(--fg2);text-transform:uppercase;letter-spacing:.4px">Média do Mês</div></div>`:''}
+      </div>
+      <table style="min-width:600px"><thead><tr>
+        <th>Cargo / Vaga</th><th>Tipo</th><th>Abertura</th><th>Fechamento</th><th>Admissão</th><th>Dias em Aberto</th><th>Candidato</th>
+      </tr></thead><tbody>
+        ${fech.map(f=>`<tr><td><b>${f.vaga}</b></td><td style="color:var(--fg2);font-size:12px">${f.tipo}</td>
+          <td>${f.abertura}</td><td style="color:var(--teal);font-weight:600">${f.fechamento}</td>
+          <td style="color:var(--orange);font-weight:600">${f.admissao}</td><td>${diasBadge(f.dias)}</td>
+          <td style="font-size:12px;color:var(--fg2)">${f.candidato}</td></tr>`).join('')}
+      </tbody></table>
+    </div>`:'' ;
+  const semsHtml=semDoMes.length?`
+    <div class="trend-card" style="margin-top:0"><div class="card-title">Semanas do mês</div>
+      <div class="card-note">${semDoMes.length} semana(s) registrada(s)</div>
+      <table style="min-width:400px"><thead><tr><th>Semana</th><th>CVs</th><th>Reprov.</th><th>Aprov.</th><th>Taxa</th></tr></thead><tbody>
+        ${semDoMes.map(s=>`<tr><td>${s.label}</td><td>${fmt(s.cvs)}</td><td>${fmt(s.reprov)}</td><td>${fmt(s.aprov)}</td><td>${fmtP(s.taxaAprov)}</td></tr>`).join('')}
+      </tbody></table>
+    </div>`:'' ;
+  el.innerHTML=`
+    <div class="month-kpi-row">
+      ${kpisBase.map(k=>`<div class="month-kpi" ${k.accent?'style="border-color:var(--amber)"':k.green?'style="border-color:var(--green)"':''}>
+        <div class="month-kpi-val" ${k.accent?'style="color:var(--amber)"':k.green?'style="color:var(--green)"':''}>${k.val}</div>
+        <div class="month-kpi-lbl">${k.lbl}</div></div>`).join('')}
+    </div>
+    ${fechHtml}
+    ${(m.vagas||[]).length?`<div class="table-card" style="margin-bottom:24px">
+      <div class="card-title" style="margin-bottom:4px">Indicadores R&S por Vaga</div>
+      <div class="card-note">Mês completo</div>
+      <table style="min-width:460px"><thead><tr>
+        <th>Vaga</th><th>CVs</th><th>Reprov.</th><th>Aprov.</th><th>Taxa</th>${hasContrat?'<th>Contrat.</th>':''}<th>Obs.</th>
+      </tr></thead><tbody>${vagaRows}</tbody></table>
+    </div>`:''}
+    ${semsHtml}
+    ${m.obs?`<div style="font-size:12px;color:var(--fg2);padding:12px 16px;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);">📌 ${m.obs}</div>`:''}
+  `;
+}
+
+function mesTag(dataStr){
+  const parts=dataStr.split('/'); if(parts.length<3) return '';
+  const mes=parseInt(parts[1]),ano=parts[2];
+  const nomes=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const label=(nomes[mes-1]||'?')+'/'+ano.slice(2);
+  const cls=mes===10?'vaga-mes-out':mes===11?'vaga-mes-nov':mes===9?'vaga-mes-set':'vaga-mes-out';
+  return `<span class="vaga-mes-tag ${cls}">${label}</span>`;
+}
+
+function diasAbertoClass(d){return d>=30?'dias-aberto-warn':d>=15?'dias-aberto-mid':'dias-aberto-ok';}
+
+function renderVagasAbertas(containerId){
+  const el=document.getElementById(containerId); if(!el) return;
+  const abertas=VAGAS_ABERTAS.filter(v=>v.status==='Aberta');
+  const fechadas=VAGAS_ABERTAS.filter(v=>v.status==='Fechada');
+  if(!VAGAS_ABERTAS.length){el.innerHTML='';return;}
+  const rows=abertas.map(v=>`<tr>
+    <td><b>${v.vaga}</b>${mesTag(v.abertura)}</td>
+    <td style="color:var(--fg2);font-size:12px">${v.tipo}</td>
+    <td>${v.abertura.slice(0,5)}</td>
+    <td class="${diasAbertoClass(v.diasAberto)}">${v.diasAberto}d</td>
+    <td><span class="badge-open">Aberta</span></td>
+    <td style="color:var(--fg2);font-size:12px">—</td></tr>`).join('');
+  const rowsFech=fechadas.map(v=>`<tr style="opacity:.6">
+    <td><b>${v.vaga}</b>${mesTag(v.abertura)}</td>
+    <td style="color:var(--fg2);font-size:12px">${v.tipo}</td>
+    <td>${v.abertura.slice(0,5)}</td>
+    <td style="color:var(--fg2)">${v.diasAberto!=null?v.diasAberto+'d':'—'}</td>
+    <td><span class="badge-closed">Fechada</span></td>
+    <td style="font-size:12px;color:var(--fg2)">${v.candidato||'—'} ${v.fechamento?'· adm '+v.fechamento:''}</td></tr>`).join('');
+  const ultimaSem=SEMANAS[SEMANAS.length-1];
+  el.innerHTML=`
+    <div class="vagas-abertas-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+        <div><div class="card-title">🔓 Vagas em Aberto — SC</div>
+          <div class="card-note">${abertas.length} vaga(s) ativa(s) · ref. semana ${ultimaSem.label} · atualizado em ${new Date().toLocaleDateString('pt-BR')}</div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:11px;align-items:center">
+          <span style="color:var(--red);font-weight:600">■ ≥30d urgente</span>
+          <span style="color:var(--orange);font-weight:600">■ 15–29d atenção</span>
+          <span style="color:var(--fg2);">■ &lt;15d normal</span>
+        </div>
+      </div>
+      <div style="overflow-x:auto"><table style="min-width:500px">
+        <thead><tr><th>Cargo / Vaga</th><th>Tipo</th><th>Abertura</th><th>Dias em Aberto</th><th>Status</th><th>Candidato / Obs.</th></tr></thead>
+        <tbody>${rows}${rowsFech}</tbody>
+      </table></div>
+    </div>`;
+}
+
+renderSemanas();
+</script>
+</body></html>
