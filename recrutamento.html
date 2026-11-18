@@ -100,7 +100,7 @@ tr:last-child td{border-bottom:none;}
     <div class="card">
       <div class="card-title">Funil de CVs</div>
       <div class="card-note" id="funil-note">Semana selecionada</div>
-      <svg id="funil-svg" width="100%" viewBox="0 0 240 180" style="display:block;overflow:visible"></svg>
+      <svg id="funil-svg" width="100%" viewBox="0 0 320 170" style="display:block;max-width:380px;margin:0 auto"></svg>
     </div>
     <div class="card">
       <div class="card-title">CVs por Vaga</div>
@@ -396,10 +396,10 @@ function renderFunil(wk){
     {label:'Entrev. RH',val:wk.entrevRH,color:COLORS[0]},
     {label:'Gestor',    val:wk.entrevGestor,color:COLORS[2]},
   ].filter(s=>s.val>0);
-  if(!slices.length){d3.select(svg).append('text').attr('x',120).attr('y',90).attr('text-anchor','middle').attr('fill','var(--fg2)').attr('font-size',12).text('Sem dados');return;}
+  if(!slices.length){d3.select(svg).append('text').attr('x',160).attr('y',85).attr('text-anchor','middle').attr('fill','var(--fg2)').attr('font-size',12).text('Sem dados');return;}
   const total=wk.cvs||1,pie=d3.pie().value(d=>d.val).sort(null);
   const arc=d3.arc().innerRadius(40).outerRadius(68);
-  const g=d3.select(svg).append('g').attr('transform','translate(90,90)');
+  const g=d3.select(svg).append('g').attr('transform','translate(80,85)');
   g.selectAll('path').data(pie(slices)).enter().append('path')
     .attr('d',arc).attr('fill',d=>d.data.color).attr('stroke','var(--panel)').attr('stroke-width',2)
     .style('cursor','pointer')
@@ -412,7 +412,7 @@ function renderFunil(wk){
     .attr('text-anchor','middle').attr('dominant-baseline','middle')
     .attr('font-size',10).attr('font-family','Inter,sans-serif').attr('fill','#fff')
     .text(d=>d3.format('.0%')(d.data.val/total));
-  const leg=d3.select(svg).append('g').attr('transform',`translate(168,${90-slices.length*11})`);
+  const leg=d3.select(svg).append('g').attr('transform',`translate(170,${85-slices.length*11})`);
   slices.forEach((s,i)=>{
     leg.append('rect').attr('width',8).attr('height',8).attr('rx',2).attr('y',i*22).attr('fill',s.color);
     leg.append('text').attr('x',12).attr('y',i*22+8).attr('font-size',11).attr('font-family','Inter,sans-serif').attr('fill','var(--fg)').text(`${s.label}: ${fmt(s.val)}`);
