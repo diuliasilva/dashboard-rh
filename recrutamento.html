@@ -44,6 +44,22 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--f
 .kpi-lbl{font-size:11px;color:var(--fg2);margin-top:4px;text-transform:uppercase;letter-spacing:.5px;}
 .kpi-delta{font-size:12px;margin-top:6px;font-variant-numeric:tabular-nums;}
 .up{color:var(--green);}.dn{color:var(--red);}.neu{color:var(--fg2);}
+.ent-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--fg2);}
+.ent-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px;}
+.ent-row{display:grid;grid-template-columns:minmax(140px,240px) 1fr 1fr;gap:6px 16px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);}
+.ent-row:last-child{border-bottom:none;}
+.ent-name{font-size:13px;font-weight:600;}
+.ent-cell{display:flex;align-items:center;gap:8px;}
+.ent-track{flex:1;height:14px;background:var(--bg);border-radius:4px;overflow:hidden;min-width:40px;}
+.ent-fill{height:100%;border-radius:4px;}
+.ent-num{min-width:22px;text-align:right;font-weight:700;font-size:14px;font-variant-numeric:tabular-nums;}
+.ent-head{font-size:11px;font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:.5px;padding-bottom:6px;border-bottom:1.5px solid var(--border);}
+.ent-total{font-weight:700;border-top:1.5px solid var(--border);border-bottom:none;margin-top:2px;}
+.ent-pend{font-size:11px;color:var(--orange);font-weight:500;}
+@media(max-width:560px){.ent-row{grid-template-columns:1fr 1fr;}.ent-name{grid-column:1/-1;}.ent-head .ent-name{display:none;}}
+.th-rh{color:var(--teal)!important;}.th-gest{color:#b87c00!important;}
+td.num-rh{font-weight:700;color:var(--teal);}td.num-gest{font-weight:700;color:#b87c00;}
+tfoot td{font-weight:700;border-top:1.5px solid var(--border);border-bottom:none;}
 .charts-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px;margin-bottom:24px;}
 .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);}
 .card-title{font-size:14px;font-weight:600;margin-bottom:4px;}
@@ -109,6 +125,19 @@ tr:last-child td{border-bottom:none;}
     </div>
   </div>
   <div class="trend-card">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:16px">
+      <div>
+        <div class="card-title">Entrevistas por Vaga — RH x Gestor</div>
+        <div class="card-note" id="entrev-note" style="margin-bottom:0">Semana selecionada</div>
+      </div>
+      <div class="ent-legend">
+        <span><i style="background:var(--teal)"></i>Entrevista RH</span>
+        <span><i style="background:var(--amber)"></i>Entrevista Gestor</span>
+      </div>
+    </div>
+    <div id="entrev-chart"></div>
+  </div>
+  <div class="trend-card">
     <div class="card-title">Histórico Semanal</div>
     <div class="card-note">CVs recebidos (—) e Aprovados (- -) por semana</div>
     <svg id="trend-svg" width="100%" viewBox="0 0 680 160" style="display:block;overflow:visible"></svg>
@@ -116,9 +145,10 @@ tr:last-child td{border-bottom:none;}
   <div class="table-card">
     <div class="card-title" style="margin-bottom:4px">Detalhe por Vaga</div>
     <div class="card-note">Semana selecionada</div>
-    <table>
-      <thead><tr><th>Vaga</th><th>CVs</th><th>Reprov.</th><th>Aprov.</th><th>Taxa</th><th>Status</th></tr></thead>
+    <table style="min-width:820px">
+      <thead><tr><th>Vaga</th><th>CVs</th><th>Reprov.</th><th>Aprov.</th><th>Taxa</th><th class="th-rh">Entrev. RH</th><th class="th-gest">Entrev. Gestor</th><th>Status</th><th>Obs.</th></tr></thead>
       <tbody id="vaga-tbody"></tbody>
+      <tfoot id="vaga-tfoot"></tfoot>
     </table>
   </div>
 </div>
@@ -154,21 +184,21 @@ const SEMANAS = [
     label:"01/10 a 02/10",
     cvs:6, reprov:4, aprov:1, entrevRH:1, entrevGestor:0, taxaAprov:0.167,
     vagas:[
-      {vaga:"Motorista 2T",  cvs:3, reprov:2, aprov:1, taxaAprov:0.33, status:"Fechada", obs:"Erivelton contratado 01/10"},
-      {vaga:"Ajudante 2T",   cvs:2, reprov:2, aprov:0, taxaAprov:0.0,  status:"Fechada", obs:"José contratado 01/10"},
-      {vaga:"Conferente 1T", cvs:1, reprov:1, aprov:0, taxaAprov:0.0,  status:"Aberta"},
+      {vaga:"Motorista 2T",  cvs:3, reprov:2, aprov:1, taxaAprov:0.33, entrevRH:null, entrevGestor:null, status:"Fechada", obs:"Erivelton contratado 01/10"},
+      {vaga:"Ajudante 2T",   cvs:2, reprov:2, aprov:0, taxaAprov:0.0,  entrevRH:null, entrevGestor:null, status:"Fechada", obs:"José contratado 01/10"},
+      {vaga:"Conferente 1T", cvs:1, reprov:1, aprov:0, taxaAprov:0.0,  entrevRH:null, entrevGestor:null, status:"Aberta"},
     ],
-    obs:"Dados parciais — apenas 01 e 02/10. 2 admissões: Erivelton (Motorista 2T) e José (Ajudante 2T)."
+    obs:"Dados parciais — apenas 01 e 02/10. 2 admissões: Erivelton (Motorista 2T) e José (Ajudante 2T). Entrevistas por vaga não disponíveis para esta semana (planilha registra a semana 28/09–02/10 inteira)."
   },
   {
     id:"sem-0510", mes:"2026-10", ordem:2,
     label:"05/10 a 09/10",
     cvs:6, reprov:4, aprov:1, entrevRH:2, entrevGestor:0, taxaAprov:0.167,
     vagas:[
-      {vaga:"Motorista 2T",  cvs:6, reprov:4, aprov:1, taxaAprov:0.17, status:"Aberta"},
-      {vaga:"Ajudante 2T",   cvs:4, reprov:3, aprov:0, taxaAprov:0.0,  status:"Aberta"},
-      {vaga:"Ajudante 1T",   cvs:3, reprov:2, aprov:0, taxaAprov:0.0,  status:"Aberta"},
-      {vaga:"Conferente 1T", cvs:2, reprov:2, aprov:0, taxaAprov:0.0,  status:"Aberta"},
+      {vaga:"Motorista 2T",  cvs:6, reprov:4, aprov:1, taxaAprov:0.17, entrevRH:0, entrevGestor:0, status:"Aberta"},
+      {vaga:"Ajudante 2T",   cvs:4, reprov:3, aprov:0, taxaAprov:0.0,  entrevRH:1, entrevGestor:0, status:"Aberta", obs:"Aguardar"},
+      {vaga:"Ajudante 1T",   cvs:3, reprov:2, aprov:0, taxaAprov:0.0,  entrevRH:0, entrevGestor:0, status:"Aberta"},
+      {vaga:"Conferente 1T", cvs:2, reprov:2, aprov:0, taxaAprov:0.0,  entrevRH:1, entrevGestor:0, status:"Aberta", obs:"Gestor agendado 14/10"},
     ]
   },
   {
@@ -176,8 +206,8 @@ const SEMANAS = [
     label:"13/10 a 16/10",
     cvs:9, reprov:6, aprov:0, entrevRH:0, entrevGestor:0, taxaAprov:0,
     vagas:[
-      {vaga:"Conferente",  cvs:6, reprov:5, aprov:0, taxaAprov:0.0, status:"Aberta"},
-      {vaga:"Ajudante 2T", cvs:3, reprov:1, aprov:0, taxaAprov:0.0, status:"Aberta"},
+      {vaga:"Conferente",  cvs:6, reprov:5, aprov:0, taxaAprov:0.0, entrevRH:0, entrevGestor:0, status:"Aberta"},
+      {vaga:"Ajudante 2T", cvs:3, reprov:1, aprov:0, taxaAprov:0.0, entrevRH:0, entrevGestor:0, status:"Aberta"},
     ]
   },
   {
@@ -185,10 +215,10 @@ const SEMANAS = [
     label:"19/10 a 23/10",
     cvs:13, reprov:9, aprov:3, entrevRH:3, entrevGestor:1, taxaAprov:0.231,
     vagas:[
-      {vaga:"Motorista 1T",  cvs:7, reprov:5, aprov:2, taxaAprov:0.29, status:"Aberta"},
-      {vaga:"Ajudante 1T",   cvs:4, reprov:3, aprov:1, taxaAprov:0.25, status:"Aberta"},
-      {vaga:"Conferente 2T", cvs:2, reprov:1, aprov:0, taxaAprov:0.0,  status:"Aberta"},
-      {vaga:"Conferente 1T", cvs:0, reprov:0, aprov:1, taxaAprov:null, status:"Fechada"},
+      {vaga:"Motorista 1T",  cvs:7, reprov:5, aprov:2, taxaAprov:0.29, entrevRH:0, entrevGestor:0, status:"Aberta"},
+      {vaga:"Ajudante 1T",   cvs:4, reprov:3, aprov:1, taxaAprov:0.25, entrevRH:1, entrevGestor:0, status:"Aberta"},
+      {vaga:"Conferente 2T", cvs:2, reprov:1, aprov:0, taxaAprov:0.0,  entrevRH:2, entrevGestor:1, status:"Aberta"},
+      {vaga:"Conferente 1T", cvs:0, reprov:0, aprov:1, taxaAprov:null, entrevRH:0, entrevGestor:0, status:"Fechada", obs:"Robson admitido 19/10"},
     ],
     obs:"Conferente 1T fechada — Robson admitido em 19/10"
   },
@@ -197,10 +227,10 @@ const SEMANAS = [
     label:"26/10 a 30/10",
     cvs:34, reprov:21, aprov:5, entrevRH:2, entrevGestor:0, taxaAprov:0.147,
     vagas:[
-      {vaga:"Conferente 2T", cvs:11, reprov:9,  aprov:2, taxaAprov:0.18, status:"Aberta"},
-      {vaga:"Motorista 1T",  cvs:12, reprov:3,  aprov:2, taxaAprov:0.17, status:"Aberta"},
-      {vaga:"Ajudante 2T",   cvs:11, reprov:9,  aprov:1, taxaAprov:0.09, status:"Aberta"},
-      {vaga:"Ajudante 1T",   cvs:0,  reprov:0,  aprov:0, taxaAprov:null, status:"Aberta", obs:"Sem CVs nesta semana"},
+      {vaga:"Conferente 2T", cvs:11, reprov:9,  aprov:2, taxaAprov:0.18, entrevRH:0, entrevGestor:0, status:"Aberta"},
+      {vaga:"Motorista 1T",  cvs:12, reprov:3,  aprov:2, taxaAprov:0.17, entrevRH:2, entrevGestor:0, status:"Aberta"},
+      {vaga:"Ajudante 2T",   cvs:11, reprov:9,  aprov:1, taxaAprov:0.09, entrevRH:0, entrevGestor:0, status:"Aberta"},
+      {vaga:"Ajudante 1T",   cvs:0,  reprov:0,  aprov:0, taxaAprov:null, entrevRH:0, entrevGestor:0, status:"Aberta", obs:"Sem CVs nesta semana"},
     ]
   },
   {
@@ -208,9 +238,9 @@ const SEMANAS = [
     label:"03/11 a 06/11",
     cvs:25, reprov:20, aprov:1, entrevRH:1, entrevGestor:0, taxaAprov:0.04,
     vagas:[
-      {vaga:"Ajudante 1º turno",   cvs:7,  reprov:2,  aprov:1, taxaAprov:0.14, status:"Fechada", obs:"Weslen admitido 12/11"},
-      {vaga:"Motorista 1º turno",  cvs:8,  reprov:8,  aprov:0, taxaAprov:0.0,  status:"Aberta"},
-      {vaga:"Conferente 2º turno", cvs:10, reprov:10, aprov:0, taxaAprov:0.0,  status:"Aberta"},
+      {vaga:"Ajudante 1º turno",   cvs:7,  reprov:2,  aprov:1, taxaAprov:0.14, entrevRH:1, entrevGestor:0, status:"Fechada", obs:"Agendar 2ª etapa; Weslen admitido 12/11"},
+      {vaga:"Motorista 1º turno",  cvs:8,  reprov:8,  aprov:0, taxaAprov:0.0,  entrevRH:0, entrevGestor:0, status:"Aberta"},
+      {vaga:"Conferente 2º turno", cvs:10, reprov:10, aprov:0, taxaAprov:0.0,  entrevRH:0, entrevGestor:0, status:"Aberta"},
     ],
     obs:"Semana 03–06/11 — apenas SC. 3 candidatos desclassificados na pesquisa. Ajudante 1T fechada em 09/11: Weslen adm. 12/11."
   },
@@ -219,27 +249,27 @@ const SEMANAS = [
     label:"09/11 a 12/11",
     cvs:67, reprov:37, aprov:22, entrevRH:4, entrevGestor:0, taxaAprov:0.33,
     vagas:[
-      {vaga:"Motorista 1º turno",          cvs:25, reprov:15, aprov:5,  taxaAprov:0.20, status:"Aberta", obs:"1 entrev. RH, agendar +1 semana 16–20/11"},
-      {vaga:"Auxiliar/Analista Oper. 2T",  cvs:21, reprov:9,  aprov:10, taxaAprov:0.48, status:"Aberta", obs:"3 entrev. RH, agendar +2 semana 16–20/11"},
-      {vaga:"Auxiliar de Atendimento",     cvs:9,  reprov:4,  aprov:4,  taxaAprov:0.44, status:"Aberta"},
-      {vaga:"Conferente 2º turno",         cvs:6,  reprov:6,  aprov:0,  taxaAprov:0.0,  status:"Aberta"},
-      {vaga:"Recepção (vaga anônima)",     cvs:3,  reprov:1,  aprov:2,  taxaAprov:0.67, status:"Aberta"},
-      {vaga:"Ajudante 2º turno",           cvs:3,  reprov:2,  aprov:1,  taxaAprov:0.33, status:"Aberta"},
+      {vaga:"Motorista 1º turno",          cvs:25, reprov:15, aprov:5,  taxaAprov:0.20, entrevRH:1, entrevGestor:0, status:"Aberta", obs:"Gestor: agendar 1 na semana 16–20/11"},
+      {vaga:"Auxiliar/Analista Oper. 2T",  cvs:21, reprov:9,  aprov:10, taxaAprov:0.48, entrevRH:3, entrevGestor:0, status:"Aberta", obs:"Gestor: agendar 2 na semana 16–20/11"},
+      {vaga:"Auxiliar de Atendimento",     cvs:9,  reprov:4,  aprov:4,  taxaAprov:0.44, entrevRH:0, entrevGestor:0, status:"Aberta"},
+      {vaga:"Conferente 2º turno",         cvs:6,  reprov:6,  aprov:0,  taxaAprov:0.0,  entrevRH:0, entrevGestor:0, status:"Aberta"},
+      {vaga:"Recepção (vaga anônima)",     cvs:3,  reprov:1,  aprov:2,  taxaAprov:0.67, entrevRH:0, entrevGestor:0, status:"Aberta"},
+      {vaga:"Ajudante 2º turno",           cvs:3,  reprov:2,  aprov:1,  taxaAprov:0.33, entrevRH:0, entrevGestor:0, status:"Aberta"},
     ],
     obs:"Semana 09–12/11 — SC. Total SC: 67 CVs. SP: +148 CVs (Exec. Comercial 112, Ajudante 9, Motorista 27 — todos reprovados). Levantamento passa a ser seg–qui a partir desta semana."
   },
   {
     id:"sem-1311", mes:"2026-11", ordem:3,
     label:"13/11 a 19/11",
-    cvs:114, reprov:101, aprov:14, entrevRH:9, entrevGestor:7, taxaAprov:0.123,
+    cvs:114, reprov:101, aprov:14, entrevRH:9, entrevGestor:8, taxaAprov:0.123,
     vagas:[
-      {vaga:"Executivo Comercial SP",      cvs:43, reprov:43, aprov:0, taxaAprov:0.0,  status:"Aberta", obs:"3 por busca ativa (link)"},
-      {vaga:"Auxiliar/Analista Oper. 2T",  cvs:26, reprov:23, aprov:3, taxaAprov:0.12, status:"Aberta"},
-      {vaga:"Auxiliar de Atendimento",     cvs:23, reprov:20, aprov:3, taxaAprov:0.13, status:"Aberta"},
-      {vaga:"Recepção (vaga anônima)",     cvs:10, reprov:6,  aprov:4, taxaAprov:0.40, status:"Aberta"},
-      {vaga:"Conferente 2º turno",         cvs:8,  reprov:7,  aprov:1, taxaAprov:0.13, status:"Fechada", obs:"Luiz Fernando aprovado — adm. 25/11"},
-      {vaga:"Motorista 1º turno",          cvs:2,  reprov:1,  aprov:2, taxaAprov:1.0,  status:"Aberta", obs:"Luiz Carlos aprovado (Sub/Heber) — adm. 25/11; vaga Sub/Gabriel segue aberta"},
-      {vaga:"Ajudante 2º turno",           cvs:2,  reprov:1,  aprov:1, taxaAprov:0.50, status:"Aberta"},
+      {vaga:"Executivo Comercial SP",      cvs:43, reprov:43, aprov:0, taxaAprov:0.0,  entrevRH:0, entrevGestor:1, status:"Aberta", obs:"3 por busca ativa (link)"},
+      {vaga:"Auxiliar/Analista Oper. 2T",  cvs:26, reprov:23, aprov:3, taxaAprov:0.12, entrevRH:2, entrevGestor:2, status:"Aberta"},
+      {vaga:"Auxiliar de Atendimento",     cvs:23, reprov:20, aprov:3, taxaAprov:0.13, entrevRH:2, entrevGestor:2, status:"Aberta"},
+      {vaga:"Recepção (vaga anônima)",     cvs:10, reprov:6,  aprov:4, taxaAprov:0.40, entrevRH:2, entrevGestor:0, status:"Aberta"},
+      {vaga:"Conferente 2º turno",         cvs:8,  reprov:7,  aprov:1, taxaAprov:0.13, entrevRH:1, entrevGestor:1, status:"Fechada", obs:"1 aprovado — Luiz Fernando, adm. 25/11"},
+      {vaga:"Motorista 1º turno",          cvs:2,  reprov:1,  aprov:2, taxaAprov:1.0,  entrevRH:2, entrevGestor:2, status:"Aberta", obs:"1 aprovado — Luiz Carlos (Sub/Heber), adm. 25/11; vaga Sub/Gabriel segue aberta"},
+      {vaga:"Ajudante 2º turno",           cvs:2,  reprov:1,  aprov:1, taxaAprov:0.50, entrevRH:0, entrevGestor:0, status:"Aberta"},
     ],
     obs:"Semana 13–19/11 — SC, incluindo Executivo Comercial SP (43 CVs), como na planilha. 2 vagas fechadas: Conferente 2T (Luiz Fernando) e Motorista 1T Sub/Heber (Luiz Carlos), ambos com admissão em 25/11. SP: +22 CVs (Ajudante 11, Motorista 11)."
   }
@@ -276,11 +306,11 @@ const MESES = [
     cvs:83, reprov:53, aprov:30, entrevRH:24, entrevGestor:8, taxaAprov:0.36, contratacoes:4,
     semanas:[],
     vagas:[
-      {vaga:"Motorista 1º turno",          cvs:15, reprov:13, aprov:2,  taxaAprov:0.13, contrat:0},
-      {vaga:"Analista/Auxiliar Comercial", cvs:23, reprov:13, aprov:10, taxaAprov:0.43, contrat:1, obs:"Aguardando admissão"},
-      {vaga:"Ajudante 2º turno",           cvs:10, reprov:8,  aprov:3,  taxaAprov:0.30, contrat:1},
-      {vaga:"Recepcionista",               cvs:20, reprov:10, aprov:10, taxaAprov:0.50, contrat:1},
-      {vaga:"Aux. Operacional 1T",         cvs:null, reprov:null, aprov:null, taxaAprov:null, contrat:1, obs:"Promoção interna — Maria Alice"},
+      {vaga:"Motorista 1º turno",          cvs:15, reprov:13, aprov:2,  taxaAprov:0.13, entrevRH:0, entrevGestor:0, contrat:0},
+      {vaga:"Analista/Auxiliar Comercial", cvs:23, reprov:13, aprov:10, taxaAprov:0.43, entrevRH:8, entrevGestor:6, contrat:1, obs:"Aguardando admissão"},
+      {vaga:"Ajudante 2º turno",           cvs:10, reprov:8,  aprov:3,  taxaAprov:0.30, entrevRH:3, entrevGestor:0, contrat:1},
+      {vaga:"Recepcionista",               cvs:20, reprov:10, aprov:10, taxaAprov:0.50, entrevRH:7, entrevGestor:0, contrat:1},
+      {vaga:"Aux. Operacional 1T",         cvs:null, reprov:null, aprov:null, taxaAprov:null, entrevRH:null, entrevGestor:null, contrat:1, obs:"Promoção interna — Maria Alice"},
     ],
     fechamento:[
       {vaga:"Ajudante 2º turno",           tipo:"Sub/ Marcos",  abertura:"11/05", fechamento:"03/08", admissao:"06/07", dias:84,  candidato:"Jean"},
@@ -319,12 +349,12 @@ const MESES = [
     cvs:68, reprov:44, aprov:10, entrevRH:8, entrevGestor:1, taxaAprov:0.147, contratacoes:3,
     semanas:["sem-0110","sem-0510","sem-1310","sem-1910","sem-2610"],
     vagas:[
-      {vaga:"Motorista 1T",  cvs:19, reprov:8,  aprov:4, taxaAprov:0.21, contrat:0},
-      {vaga:"Conferente 2T", cvs:13, reprov:10, aprov:2, taxaAprov:0.15, contrat:0},
-      {vaga:"Ajudante 2T",   cvs:17, reprov:14, aprov:1, taxaAprov:0.06, contrat:1, obs:"José admitido 01/10"},
-      {vaga:"Ajudante 1T",   cvs:7,  reprov:5,  aprov:1, taxaAprov:0.14, contrat:0},
-      {vaga:"Conferente 1T", cvs:3,  reprov:3,  aprov:1, taxaAprov:null, contrat:1, obs:"Robson admitido 19/10"},
-      {vaga:"Motorista 2T",  cvs:9,  reprov:6,  aprov:1, taxaAprov:0.11, contrat:1, obs:"Erivelton admitido 01/10"},
+      {vaga:"Motorista 1T",  cvs:19, reprov:8,  aprov:4, taxaAprov:0.21, entrevRH:2, entrevGestor:0, contrat:0},
+      {vaga:"Conferente 2T", cvs:13, reprov:10, aprov:2, taxaAprov:0.15, entrevRH:2, entrevGestor:1, contrat:0},
+      {vaga:"Ajudante 2T",   cvs:17, reprov:14, aprov:1, taxaAprov:0.06, entrevRH:1, entrevGestor:0, contrat:1, obs:"José admitido 01/10"},
+      {vaga:"Ajudante 1T",   cvs:7,  reprov:5,  aprov:1, taxaAprov:0.14, entrevRH:1, entrevGestor:0, contrat:0},
+      {vaga:"Conferente 1T", cvs:3,  reprov:3,  aprov:1, taxaAprov:null, entrevRH:1, entrevGestor:0, contrat:1, obs:"Robson admitido 19/10"},
+      {vaga:"Motorista 2T",  cvs:9,  reprov:6,  aprov:1, taxaAprov:0.11, entrevRH:null, entrevGestor:null, contrat:1, obs:"Erivelton admitido 01/10"},
     ],
     fechamento:[
       {vaga:"Ajudante 2º turno",   tipo:"Sub/ Lucas",     abertura:"21/08", fechamento:"28/09", admissao:"01/10", dias:28, candidato:"José Nadilson"},
@@ -374,7 +404,7 @@ function taxaColor(t){
 function renderSemanas(){
   const wk=SEMANAS[selSem], prev=selSem>0?SEMANAS[selSem-1]:null;
   renderWeekTabs(); renderVagasAbertas('vagas-abertas-semanal');
-  renderKPIs(wk,prev); renderFunil(wk); renderVagaBars(wk); renderTrend(); renderTable(wk);
+  renderKPIs(wk,prev); renderFunil(wk); renderVagaBars(wk); renderEntrevistas(wk); renderTrend(); renderTable(wk);
   document.getElementById('ctx-label').textContent='Semana '+wk.label;
 }
 
@@ -514,6 +544,33 @@ function renderTrend(){
     }).on('mouseleave',()=>tt.style.display='none');
 }
 
+const numOrDash=v=>v==null?'—':fmt(v);
+
+function renderEntrevistas(wk){
+  const el=document.getElementById('entrev-chart');
+  const vagas=wk.vagas||[];
+  const semDados=vagas.length&&vagas.every(v=>v.entrevRH==null&&v.entrevGestor==null);
+  document.getElementById('entrev-note').textContent=
+    `Semana ${wk.label} · ${fmt(wk.entrevRH)} entrevista(s) RH · ${fmt(wk.entrevGestor)} entrevista(s) Gestor`;
+  if(!vagas.length||semDados){
+    el.innerHTML=`<div style="font-size:13px;color:var(--fg2);padding:8px 0">Entrevistas por vaga não registradas para esta semana (total: ${fmt(wk.entrevRH)} RH · ${fmt(wk.entrevGestor)} Gestor).</div>`;
+    return;
+  }
+  const maxV=Math.max(1,...vagas.map(v=>Math.max(v.entrevRH||0,v.entrevGestor||0)));
+  const pend=o=>{const m=(o||'').match(/(agendar[^;—]*|agendado[^;—]*)/i);return m?`<div class="ent-pend">${m[1].trim()}</div>`:'';};
+  const cell=(n,color)=>{
+    if(n==null) return `<div class="ent-cell"><div class="ent-track"></div><span class="ent-num" style="color:var(--fg2)">—</span></div>`;
+    return `<div class="ent-cell"><div class="ent-track"><div class="ent-fill" style="width:${n/maxV*100}%;background:${color}"></div></div><span class="ent-num" style="color:${n?color:'var(--fg2)'}">${n}</span></div>`;
+  };
+  const sorted=[...vagas].sort((a,b)=>((b.entrevRH||0)+(b.entrevGestor||0))-((a.entrevRH||0)+(a.entrevGestor||0)));
+  el.innerHTML=`
+    <div class="ent-row ent-head"><div class="ent-name">Vaga</div><div>Entrevista RH</div><div>Entrevista Gestor</div></div>
+    ${sorted.map(v=>`<div class="ent-row"><div class="ent-name">${v.vaga}${pend(v.obs)}</div>${cell(v.entrevRH,'#0B6E8A')}${cell(v.entrevGestor,'#F0A500')}</div>`).join('')}
+    <div class="ent-row ent-total"><div class="ent-name">Total da semana</div>
+      <div class="ent-cell"><span class="ent-num" style="color:#0B6E8A;text-align:left">${fmt(wk.entrevRH)}</span></div>
+      <div class="ent-cell"><span class="ent-num" style="color:#b87c00;text-align:left">${fmt(wk.entrevGestor)}</span></div></div>`;
+}
+
 function renderTable(wk){
   document.getElementById('vaga-tbody').innerHTML=(wk.vagas||[]).map(v=>{
     const t=v.taxaAprov,pct=fmtP(t),col=taxaColor(t);
@@ -521,8 +578,11 @@ function renderTable(wk){
     const badge=v.status==='Fechada'?`<span class="badge-closed">Fechada</span>`:`<span class="badge-open">Aberta</span>`;
     return `<tr><td><b>${v.vaga}</b></td><td>${fmt(v.cvs??0)}</td><td>${fmt(v.reprov??0)}</td><td>${fmt(v.aprov??0)}</td>
       <td><div class="bar-wrap"><div class="track"><div class="fill" style="width:${fill};background:${col}"></div></div><span style="min-width:34px">${pct}</span></div></td>
-      <td>${badge}</td></tr>`;
+      <td class="num-rh">${numOrDash(v.entrevRH)}</td><td class="num-gest">${numOrDash(v.entrevGestor)}</td>
+      <td>${badge}</td><td style="font-size:11px;color:var(--fg2);max-width:220px">${v.obs||'—'}</td></tr>`;
   }).join('');
+  document.getElementById('vaga-tfoot').innerHTML=`<tr><td>Total</td><td>${fmt(wk.cvs)}</td><td>${fmt(wk.reprov)}</td><td>${fmt(wk.aprov)}</td>
+    <td>${fmtP(wk.taxaAprov)}</td><td class="num-rh">${fmt(wk.entrevRH)}</td><td class="num-gest">${fmt(wk.entrevGestor)}</td><td></td><td></td></tr>`;
 }
 
 function renderMensal(){renderMonthTabs();renderMonthContent();renderVagasAbertas('vagas-abertas-mensal');}
@@ -562,11 +622,13 @@ function renderMonthContent(){
   ];
   if(m.mediaDias!=null) kpisBase.push({val:m.mediaDias+'d',lbl:'Tempo Médio Fecham.',accent:true});
   const hasContrat=(m.vagas||[]).some(v=>v.contrat!=null);
+  const hasEntrev=(m.vagas||[]).some(v=>v.entrevRH!==undefined);
   const vagaRows=(m.vagas||[]).map(v=>{
     const t=v.taxaAprov,pct=fmtP(t),col=taxaColor(t);
     const fill=t!=null?Math.min(100,t*100)+'%':'0%';
     return `<tr><td><b>${v.vaga}</b></td><td>${fmt(v.cvs??0)}</td><td>${fmt(v.reprov??0)}</td><td>${fmt(v.aprov??0)}</td>
       <td><div class="bar-wrap"><div class="track"><div class="fill" style="width:${fill};background:${col}"></div></div><span style="min-width:34px">${pct}</span></div></td>
+      ${hasEntrev?`<td class="num-rh">${numOrDash(v.entrevRH)}</td><td class="num-gest">${numOrDash(v.entrevGestor)}</td>`:''}
       ${hasContrat?`<td style="font-weight:600">${v.contrat!=null?v.contrat:'—'}</td>`:''}
       <td style="font-size:11px;color:var(--fg2)">${v.obs||'—'}</td></tr>`;
   }).join('');
@@ -606,7 +668,7 @@ function renderMonthContent(){
       <div class="card-title" style="margin-bottom:4px">Indicadores R&S por Vaga</div>
       <div class="card-note">Mês completo</div>
       <table style="min-width:460px"><thead><tr>
-        <th>Vaga</th><th>CVs</th><th>Reprov.</th><th>Aprov.</th><th>Taxa</th>${hasContrat?'<th>Contrat.</th>':''}<th>Obs.</th>
+        <th>Vaga</th><th>CVs</th><th>Reprov.</th><th>Aprov.</th><th>Taxa</th>${hasEntrev?'<th class="th-rh">Entrev. RH</th><th class="th-gest">Entrev. Gestor</th>':''}${hasContrat?'<th>Contrat.</th>':''}<th>Obs.</th>
       </tr></thead><tbody>${vagaRows}</tbody></table>
     </div>`:''}
     ${semsHtml}
