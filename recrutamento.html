@@ -89,6 +89,12 @@ tr:last-child td{border-bottom:none;}
 .vaga-mes-out{background:rgba(240,165,0,.15);color:#b87c00;}
 .vaga-mes-nov{background:rgba(11,110,138,.15);color:var(--teal);}
 .vaga-mes-set{background:rgba(220,38,38,.12);color:var(--red);}
+.fech-sep td{background:rgba(22,163,74,.10);color:#15803D;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:8px 10px;border-top:2px solid #16A34A;border-bottom:none;}
+.fech-row td{background:rgba(22,163,74,.05);}
+.fech-row td:first-child{box-shadow:inset 4px 0 0 #16A34A;}
+.badge-done{background:#16A34A;color:#fff;border-radius:4px;padding:3px 8px;font-size:11px;font-weight:700;white-space:nowrap;}
+.fech-cand{font-weight:700;color:#15803D;font-size:13px;}
+.fech-adm{font-size:11px;color:var(--fg2);margin-top:2px;}
 .dias-aberto-warn{font-weight:700;color:var(--red);}
 .dias-aberto-mid{font-weight:700;color:var(--orange);}
 .dias-aberto-ok{font-weight:700;color:var(--fg2);}
@@ -174,7 +180,6 @@ const VAGAS_ABERTAS = [
   {vaga:"Auxiliar de Atendimento",      tipo:"Sub/ Douglas",          abertura:"09/11/2026", diasAberto:14, status:"Aberta"},
   {vaga:"Conferente 2º turno",          tipo:"Aumento Quadro",        abertura:"01/10/2026", diasAberto:49, status:"Fechada", candidato:"Luiz Fernando", fechamento:"25/11"},
   {vaga:"Motorista 1º turno",           tipo:"Sub/ Heber",            abertura:"22/10/2026", diasAberto:28, status:"Fechada", candidato:"Luiz Carlos",   fechamento:"25/11"},
-  {vaga:"Ajudante 1º turno",            tipo:"Sub/ Alan",             abertura:"01/10/2026", diasAberto:39, status:"Fechada", candidato:"Weslen",        fechamento:"12/11"},
 ];
 
 const SEMANAS = [
@@ -698,19 +703,19 @@ function renderVagasAbertas(containerId){
     <td class="${diasAbertoClass(v.diasAberto)}">${v.diasAberto}d</td>
     <td><span class="badge-open">Aberta</span></td>
     <td style="color:var(--fg2);font-size:12px">—</td></tr>`).join('');
-  const rowsFech=fechadas.map(v=>`<tr style="opacity:.6">
+  const rowsFech=fechadas.length?`<tr class="fech-sep"><td colspan="6">✅ Vagas fechadas na semana (${fechadas.length})</td></tr>`+fechadas.map(v=>`<tr class="fech-row">
     <td><b>${v.vaga}</b>${mesTag(v.abertura)}</td>
     <td style="color:var(--fg2);font-size:12px">${v.tipo}</td>
     <td>${v.abertura.slice(0,5)}</td>
-    <td style="color:var(--fg2)">${v.diasAberto!=null?v.diasAberto+'d':'—'}</td>
-    <td><span class="badge-closed">Fechada</span></td>
-    <td style="font-size:12px;color:var(--fg2)">${v.candidato||'—'} ${v.fechamento?'· adm '+v.fechamento:''}</td></tr>`).join('');
+    <td style="color:var(--fg2)">${v.diasAberto!=null?v.diasAberto+'d':'—'}<div style="font-size:10px">até fechar</div></td>
+    <td><span class="badge-done">✓ Fechada</span></td>
+    <td><div class="fech-cand">${v.candidato||'—'}</div>${v.fechamento?`<div class="fech-adm">Admissão ${v.fechamento}</div>`:''}</td></tr>`).join(''):'';
   const ultimaSem=SEMANAS[SEMANAS.length-1];
   el.innerHTML=`
     <div class="vagas-abertas-card">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
         <div><div class="card-title">🔓 Vagas em Aberto — SC</div>
-          <div class="card-note">${abertas.length} vaga(s) ativa(s) · ref. semana ${ultimaSem.label} · atualizado em ${new Date().toLocaleDateString('pt-BR')}</div></div>
+          <div class="card-note">${abertas.length} vaga(s) ativa(s)${fechadas.length?` · ${fechadas.length} fechada(s) na semana`:''} · ref. semana ${ultimaSem.label} · atualizado em ${new Date().toLocaleDateString('pt-BR')}</div></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:11px;align-items:center">
           <span style="color:var(--red);font-weight:600">■ ≥30d urgente</span>
           <span style="color:var(--orange);font-weight:600">■ 15–29d atenção</span>
